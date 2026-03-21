@@ -27,5 +27,7 @@ struct DiscoverCardView: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.primary.opacity(0.08), lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(item.title). \(item.description)")
     }
 }

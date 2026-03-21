@@ -35,6 +35,7 @@ struct ProjectDetailView: View {
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
+                .accessibilityLabel("Share")
 
                 if let onRemix {
                     Button {
@@ -42,6 +43,7 @@ struct ProjectDetailView: View {
                     } label: {
                         Image(systemName: "arrow.triangle.2.circlepath")
                     }
+                    .accessibilityLabel("Remix")
                 }
 
                 Button(role: .destructive) {
@@ -49,6 +51,7 @@ struct ProjectDetailView: View {
                 } label: {
                     Image(systemName: "trash")
                 }
+                .accessibilityLabel("Delete")
             }
         }
         .sheet(isPresented: $showShareSheet) {

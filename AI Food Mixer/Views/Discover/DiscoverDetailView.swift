@@ -51,6 +51,7 @@ struct DiscoverDetailView: View {
                                     ))
                             )
                     }
+                    .accessibilityLabel("Try this mix with \(item.ingredients.count) ingredients")
                 }
 
                 Divider()

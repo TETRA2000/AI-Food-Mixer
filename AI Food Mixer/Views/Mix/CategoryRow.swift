@@ -28,6 +28,8 @@ struct CategoryRow: View {
                 }
             }
             .padding(.horizontal)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(category.displayName), \(selectedIngredients.filter { $0.categoryId == category.id }.count) selected")
 
             // Horizontal scroll of cards
             ScrollView(.horizontal, showsIndicators: false) {
@@ -41,6 +43,7 @@ struct CategoryRow: View {
                     }
                 }
                 .padding(.horizontal)
+                .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
         }

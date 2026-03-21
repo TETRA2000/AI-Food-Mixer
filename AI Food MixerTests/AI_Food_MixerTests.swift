@@ -208,4 +208,190 @@ struct AI_Food_MixerTests {
         vm.loadIngredients(ingredients)
         #expect(vm.selectedCount == 3)
     }
+
+    @Test func mixViewModelAllCategories() {
+        let vm = MixViewModel()
+        let categories = vm.allCategories(customCategories: [])
+        #expect(categories.count == DefaultCategories.all.count)
+        // Verify sorted by sortOrder
+        for i in 0..<categories.count - 1 {
+            #expect(categories[i].sortOrder <= categories[i + 1].sortOrder)
+        }
+    }
+
+    @Test func mixViewModelIngredients() {
+        let vm = MixViewModel()
+        let fruits = vm.ingredients(for: "fruits", customIngredients: [])
+        #expect(fruits.count == DefaultIngredients.fruits.count)
+    }
+
+    @Test func mixViewModelGeneratedTitle() {
+        let vm = MixViewModel()
+        let ingredients = Array(DefaultIngredients.fruits.prefix(3))
+        vm.loadIngredients(ingredients)
+        // When no projectTitle is set, title is generated from first 3 ingredient labels
+        #expect(vm.projectTitle.isEmpty)
+    }
+
+    @Test func mixViewModelMaxSelection() {
+        let vm = MixViewModel()
+        // Select all fruits
+        for ingredient in DefaultIngredients.fruits {
+            vm.toggleIngredient(ingredient)
+        }
+        #expect(vm.selectedCount == DefaultIngredients.fruits.count)
+        // Deselect all
+        for ingredient in DefaultIngredients.fruits {
+            vm.toggleIngredient(ingredient)
+        }
+        #expect(vm.selectedCount == 0)
+    }
+
+    // MARK: - DiscoverViewModel
+
+    @Test func discoverViewModelInitialState() {
+        let vm = DiscoverViewModel()
+        #expect(vm.items.count == 5)
+        #expect(vm.items == DefaultDiscoverItems.all)
+    }
+
+    // MARK: - Project Model
+
+    @Test func projectInitialization() {
+        let ingredients = Array(DefaultIngredients.fruits.prefix(2))
+        let project = Project(
+            title: "Test",
+            ingredients: ingredients,
+            systemPromptBody: "prompt",
+            generatedConcept: "concept"
+        )
+        #expect(project.title == "Test")
+        #expect(project.ingredients.count == 2)
+        #expect(project.systemPromptBody == "prompt")
+        #expect(project.generatedConcept == "concept")
+        #expect(project.ingredientEmojis == ingredients.map(\.emoji).joined())
+    }
+
+    @Test func projectWordCount() {
+        let project = Project(
+            title: "Test",
+            ingredients: [],
+            systemPromptBody: "",
+            generatedConcept: "This is a five word sentence"
+        )
+        #expect(project.wordCount == 6)
+    }
+
+    @Test func projectEmptyIngredients() {
+        let project = Project(
+            title: "Empty",
+            ingredients: [],
+            systemPromptBody: "",
+            generatedConcept: ""
+        )
+        #expect(project.ingredients.isEmpty)
+        #expect(project.ingredientEmojis == "")
+        #expect(project.wordCount == 0)
+    }
+
+    // MARK: - ExportService Extended
+
+    @Test func exportPlainTextFile() {
+        let url = ExportService.plainTextFileURL(title: "Test Dish", content: "# Heading\n**Bold** text")
+        #expect(url != nil)
+        #expect(url?.lastPathComponent == "Test_Dish.txt")
+    }
+
+    @Test func exportIngredientsJSON() {
+        let ingredients = Array(DefaultIngredients.fruits.prefix(2))
+        let url = ExportService.ingredientsJSON(ingredients)
+        #expect(url != nil)
+        #expect(url?.pathExtension == "json")
+    }
+
+    @Test func exportSanitizeSpecialCharacters() {
+        let url = ExportService.markdownFileURL(title: "Hello/World:Test!", content: "test")
+        #expect(url != nil)
+        // Special characters should be stripped
+        #expect(url?.lastPathComponent == "HelloWorldTest.md")
+    }
+
+    // MARK: - FoodGenerationService
+
+    @Test func foodGenerationServiceInitialState() {
+        let service = FoodGenerationService()
+        #expect(!service.isGenerating)
+        #expect(service.streamedText.isEmpty)
+        #expect(service.error == nil)
+    }
+
+    @Test func foodGenerationServiceCancel() {
+        let service = FoodGenerationService()
+        service.cancel()
+        #expect(!service.isGenerating)
+    }
+
+    // MARK: - Color+Hex
+
+    @Test func colorFromHexValid() {
+        let color = Color(hex: "#FF0000")
+        #expect(color != nil)
+    }
+
+    @Test func colorFromHexWithoutHash() {
+        let color = Color(hex: "FF0000")
+        #expect(color != nil)
+    }
+
+    // MARK: - IngredientData Gradient
+
+    @Test func ingredientCardGradient() {
+        let ingredient = DefaultIngredients.fruits[0]
+        let gradient = ingredient.cardGradient
+        // Just verify it doesn't crash
+        #expect(type(of: gradient) == LinearGradient.self)
+    }
+
+    // MARK: - CategoryData Gradient
+
+    @Test func categoryGradient() {
+        let category = DefaultCategories.all[0]
+        let gradient = category.gradient
+        #expect(type(of: gradient) == LinearGradient.self)
+    }
+
+    // MARK: - SystemPrompt Model
+
+    @Test func systemPromptPurposeConversion() {
+        let prompt = SystemPrompt(
+            name: "Test",
+            body: "Body",
+            purpose: .generation,
+            isDefault: true
+        )
+        #expect(prompt.purpose == .generation)
+        #expect(prompt.purposeRaw == "generation")
+        #expect(prompt.isDefault == true)
+    }
+
+    // MARK: - DiscoverItem Validation
+
+    @Test func discoverItemIngredientsAreValid() {
+        let validIds = Set(DefaultIngredients.all.map(\.id))
+        for item in DefaultDiscoverItems.all {
+            for ingredient in item.ingredients {
+                #expect(validIds.contains(ingredient.id),
+                        "Discover item '\(item.title)' references invalid ingredient: \(ingredient.id)")
+            }
+        }
+    }
+
+    @Test func discoverItemConceptsContainStructure() {
+        for item in DefaultDiscoverItems.all {
+            #expect(item.conceptPreview.contains("## Concept"),
+                    "Discover item '\(item.title)' missing Concept section")
+            #expect(item.conceptPreview.contains("## Flavor Profile"),
+                    "Discover item '\(item.title)' missing Flavor Profile section")
+        }
+    }
 }

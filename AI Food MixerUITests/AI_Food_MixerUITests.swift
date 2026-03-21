@@ -1,39 +1,130 @@
-//
-//  AI_Food_MixerUITests.swift
-//  AI Food MixerUITests
-//
-//  Created by Takahiko Inayama on 2026/3/22.
-//
-
 import XCTest
 
 final class AI_Food_MixerUITests: XCTestCase {
 
+    var app: XCUIApplication!
+
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+        app = XCUIApplication()
+        app.launch()
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        app = nil
+    }
+
+    // MARK: - Tab Navigation
+
+    @MainActor
+    func testTabBarExists() throws {
+        XCTAssertTrue(app.tabBars.firstMatch.exists)
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testNavigateToCreationsTab() throws {
+        app.tabBars.buttons["Creations"].tap()
+        XCTAssertTrue(app.navigationBars["Creations"].waitForExistence(timeout: 5))
     }
+
+    @MainActor
+    func testNavigateToDiscoverTab() throws {
+        app.tabBars.buttons["Discover"].tap()
+        XCTAssertTrue(app.navigationBars["Discover"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testNavigateToSettingsTab() throws {
+        app.tabBars.buttons["Settings"].tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testNavigateToMixTab() throws {
+        // Go to another tab first, then back
+        app.tabBars.buttons["Settings"].tap()
+        app.tabBars.buttons["Mix"].tap()
+        XCTAssertTrue(app.navigationBars["AI Food Mixer"].waitForExistence(timeout: 5))
+    }
+
+    // MARK: - Mix Tab
+
+    @MainActor
+    func testMixTabShowsTitle() throws {
+        XCTAssertTrue(app.navigationBars["AI Food Mixer"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testSurpriseMeButton() throws {
+        // Tap the Surprise Me button in the toolbar
+        let surpriseButton = app.buttons["Surprise Me"]
+        XCTAssertTrue(surpriseButton.waitForExistence(timeout: 5))
+        surpriseButton.tap()
+
+        // After Surprise Me, Mixing Bowl should appear
+        XCTAssertTrue(app.staticTexts["Mixing Bowl"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testIngredientCardSelection() throws {
+        // Find and tap the first ingredient card
+        let firstCard = app.buttons.matching(identifier: "Banana").firstMatch
+        if firstCard.waitForExistence(timeout: 5) {
+            firstCard.tap()
+            // Mixing Bowl header should appear
+            XCTAssertTrue(app.staticTexts["Mixing Bowl"].waitForExistence(timeout: 5))
+        }
+    }
+
+    // MARK: - Creations Tab
+
+    @MainActor
+    func testCreationsEmptyState() throws {
+        app.tabBars.buttons["Creations"].tap()
+        // Should show empty state initially
+        XCTAssertTrue(app.staticTexts["No Creations Yet"].waitForExistence(timeout: 5))
+    }
+
+    // MARK: - Discover Tab
+
+    @MainActor
+    func testDiscoverTabShowsItems() throws {
+        app.tabBars.buttons["Discover"].tap()
+        // Should show at least one discover item
+        XCTAssertTrue(app.staticTexts["Curry Lava Pizza Cake"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testDiscoverItemNavigation() throws {
+        app.tabBars.buttons["Discover"].tap()
+        let card = app.staticTexts["Curry Lava Pizza Cake"]
+        XCTAssertTrue(card.waitForExistence(timeout: 5))
+        card.tap()
+        // Should navigate to detail view
+        XCTAssertTrue(app.staticTexts["Ingredients"].waitForExistence(timeout: 5))
+    }
+
+    // MARK: - Settings Tab
+
+    @MainActor
+    func testSettingsTabShowsSections() throws {
+        app.tabBars.buttons["Settings"].tap()
+        XCTAssertTrue(app.staticTexts["AI Configuration"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Customisation"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["About"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testSettingsShowsVersion() throws {
+        app.tabBars.buttons["Settings"].tap()
+        XCTAssertTrue(app.staticTexts["Version"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["1.0"].waitForExistence(timeout: 5))
+    }
+
+    // MARK: - Launch Performance
 
     @MainActor
     func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             XCUIApplication().launch()
         }

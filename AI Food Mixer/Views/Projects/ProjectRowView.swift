@@ -26,5 +26,7 @@ struct ProjectRowView: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(project.title), \(project.wordCount) words")
     }
 }

@@ -91,6 +91,7 @@ struct GenerationView: View {
         .padding()
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
+        .accessibilityLabel("Generating food concept")
     }
 
     private var emptyState: some View {

@@ -37,6 +37,8 @@ struct MixingBowlView: View {
                     .padding(.vertical, 12)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Mixing Bowl, \(ingredients.count) ingredient\(ingredients.count == 1 ? "" : "s")")
+                .accessibilityHint(isExpanded ? "Double-tap to collapse" : "Double-tap to expand")
 
                 // Expanded content
                 if isExpanded {
@@ -92,6 +94,7 @@ struct IngredientChip: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
+            .accessibilityLabel("Remove \(ingredient.label)")
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
@@ -103,6 +106,8 @@ struct IngredientChip: View {
             Capsule()
                 .stroke(Color(hex: ingredient.colorHex).opacity(0.4), lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(ingredient.emoji) \(ingredient.label)")
     }
 }
 
