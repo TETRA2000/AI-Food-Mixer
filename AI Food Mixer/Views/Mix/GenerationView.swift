@@ -21,12 +21,14 @@ struct GenerationView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if viewModel.generationService.isGenerating {
+                if isGeneratingImage || viewModel.generationService.isGenerating {
                     generatingHeader
                 }
 
                 if let error = viewModel.generationService.error {
                     errorView(error)
+                } else if isGeneratingImage {
+                    scrollableContent
                 } else if viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating {
                     emptyState
                 } else {
@@ -188,14 +190,14 @@ struct GenerationView: View {
     private var generatingHeader: some View {
         HStack(spacing: 12) {
             ProgressView()
-            Text("Mixing your creation...")
+            Text(isGeneratingImage ? "Creating image..." : "Mixing your creation...")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .padding()
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
-        .accessibilityLabel("Generating food concept")
+        .accessibilityLabel(isGeneratingImage ? "Creating image" : "Generating food concept")
     }
 
     private var emptyState: some View {
