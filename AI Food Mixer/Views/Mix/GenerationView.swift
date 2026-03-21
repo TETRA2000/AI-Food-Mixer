@@ -82,18 +82,11 @@ struct GenerationView: View {
 
                 let settingsVM = SettingsViewModel()
                 let prompt = settingsVM.activeGenerationPrompt(modelContext: modelContext)
-                await viewModel.mix(systemPrompt: prompt)
-            }
-            .onChange(of: viewModel.generationService.isGenerating) { _, isGenerating in
-                if !isGenerating
-                    && !viewModel.generationService.streamedText.isEmpty
-                    && viewModel.generationService.error == nil
-                    && generatedImage == nil
-                    && !isGeneratingImage {
-                    Task {
-                        await generateImage()
-                    }
-                }
+
+                // Run text generation and image generation concurrently
+                async let textGeneration: Void = viewModel.mix(systemPrompt: prompt)
+                async let imageGeneration: Void = generateImage()
+                _ = await (textGeneration, imageGeneration)
             }
         }
     }
@@ -166,11 +159,12 @@ struct GenerationView: View {
 
         do {
             let creator = try await ImageCreator()
-            let text = viewModel.generationService.streamedText
-            let title = text.markdownTitle ?? "Creative food dish"
+
+            // Build concept from selected ingredients (available immediately)
+            let ingredientNames = viewModel.selectedIngredients.map(\.label)
+            let prompt = "A creative dish combining \(ingredientNames.joined(separator: ", "))"
             let concepts: [ImagePlaygroundConcept] = [
-                .text(title),
-                .extracted(from: text.strippedMarkdown, title: title)
+                .text(prompt)
             ]
 
             let images = creator.images(for: concepts, style: .illustration, limit: 1)
