@@ -167,7 +167,7 @@ struct GenerationView: View {
                 .text(prompt)
             ]
 
-            let images = creator.images(for: concepts, style: .illustration, limit: 1)
+            let images = creator.images(for: concepts, style: .animation, limit: 1)
             for try await createdImage in images {
                 let uiImage = UIImage(cgImage: createdImage.cgImage)
                 withAnimation {
