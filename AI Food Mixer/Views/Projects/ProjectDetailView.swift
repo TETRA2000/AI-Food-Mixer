@@ -16,6 +16,15 @@ struct ProjectDetailView: View {
                 // Ingredient summary
                 ingredientSection
 
+                // Saved image
+                if let image = project.image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                }
+
                 Divider()
 
                 // Concept content

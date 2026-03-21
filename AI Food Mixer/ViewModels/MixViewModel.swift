@@ -67,7 +67,7 @@ final class MixViewModel {
 
     // MARK: - Save Project
 
-    func saveProject(modelContext: ModelContext) {
+    func saveProject(modelContext: ModelContext, imageData: Data? = nil) {
         let title = projectTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let finalTitle = title.isEmpty ? generatedTitle : title
 
@@ -75,7 +75,8 @@ final class MixViewModel {
             title: finalTitle,
             ingredients: selectedIngredients,
             systemPromptBody: DefaultSystemPrompts.generationPromptBody,
-            generatedConcept: generationService.streamedText
+            generatedConcept: generationService.streamedText,
+            imageData: imageData
         )
         modelContext.insert(project)
         try? modelContext.save()

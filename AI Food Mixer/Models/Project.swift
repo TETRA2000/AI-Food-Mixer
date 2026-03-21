@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 @Model
 final class Project {
@@ -10,12 +11,14 @@ final class Project {
     var ingredientsData: Data
     var systemPromptBody: String
     var generatedConcept: String
+    var imageData: Data?
 
     init(
         title: String,
         ingredients: [IngredientData],
         systemPromptBody: String,
-        generatedConcept: String
+        generatedConcept: String,
+        imageData: Data? = nil
     ) {
         self.projectId = UUID()
         self.title = title
@@ -24,6 +27,12 @@ final class Project {
         self.ingredientsData = (try? JSONEncoder().encode(ingredients)) ?? Data()
         self.systemPromptBody = systemPromptBody
         self.generatedConcept = generatedConcept
+        self.imageData = imageData
+    }
+
+    var image: UIImage? {
+        guard let imageData else { return nil }
+        return UIImage(data: imageData)
     }
 
     var ingredients: [IngredientData] {
