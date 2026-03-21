@@ -10,16 +10,13 @@ struct GenerationView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    #if canImport(ImagePlayground)
-    @Environment(\.supportsImagePlayground) private var supportsImagePlayground
-    #endif
-
     @State private var showShareSheet = false
     @State private var showSaveConfirmation = false
     @State private var hasStartedGeneration = false
-    @State private var showImagePlayground = false
     @State private var generatedImage: UIImage?
     @State private var generatedImageData: Data?
+    @State private var isGeneratingImage = false
+    @State private var imageError: String?
 
     var body: some View {
         NavigationStack {
@@ -79,14 +76,6 @@ struct GenerationView: View {
             } message: {
                 Text("Give your creation a name.")
             }
-            #if canImport(ImagePlayground)
-            .imagePlaygroundSheet(
-                isPresented: $showImagePlayground,
-                concept: viewModel.generationService.streamedText.imagePlaygroundConcept
-            ) { url in
-                handleImagePlaygroundResult(url: url)
-            }
-            #endif
             .task {
                 guard !hasStartedGeneration else { return }
                 hasStartedGeneration = true
@@ -94,6 +83,17 @@ struct GenerationView: View {
                 let settingsVM = SettingsViewModel()
                 let prompt = settingsVM.activeGenerationPrompt(modelContext: modelContext)
                 await viewModel.mix(systemPrompt: prompt)
+            }
+            .onChange(of: viewModel.generationService.isGenerating) { _, isGenerating in
+                if !isGenerating
+                    && !viewModel.generationService.streamedText.isEmpty
+                    && viewModel.generationService.error == nil
+                    && generatedImage == nil
+                    && !isGeneratingImage {
+                    Task {
+                        await generateImage()
+                    }
+                }
             }
         }
     }
@@ -103,7 +103,7 @@ struct GenerationView: View {
     private var scrollableContent: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Generated image
+                // Generated image or progress
                 if let generatedImage {
                     Image(uiImage: generatedImage)
                         .resizable()
@@ -112,17 +112,9 @@ struct GenerationView: View {
                         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                         .padding(.horizontal)
                         .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                } else if isGeneratingImage {
+                    imageGeneratingPlaceholder
                 }
-
-                // "Create Image" button
-                #if canImport(ImagePlayground)
-                if !viewModel.generationService.isGenerating
-                    && !viewModel.generationService.streamedText.isEmpty
-                    && supportsImagePlayground
-                    && generatedImage == nil {
-                    generateImageButton
-                }
-                #endif
 
                 // Markdown content
                 Text(AttributedString(fullMarkdown: viewModel.generationService.streamedText))
@@ -135,31 +127,25 @@ struct GenerationView: View {
         }
     }
 
-    // MARK: - Generate Image Button
+    // MARK: - Image Generation Placeholder
 
-    #if canImport(ImagePlayground)
-    private var generateImageButton: some View {
-        Button {
-            showImagePlayground = true
-        } label: {
-            Label("Create Image", systemImage: "wand.and.stars")
-                .font(.headline)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(LinearGradient(
-                            colors: [.purple, .blue],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ))
-                )
+    private var imageGeneratingPlaceholder: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.large)
+            Text("Creating image...")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity)
+        .frame(height: 200)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+        )
         .padding(.horizontal)
-        .accessibilityLabel("Create an image of this food concept")
+        .accessibilityLabel("Generating image for food concept")
     }
-    #endif
 
     // MARK: - Helpers
 
@@ -170,16 +156,38 @@ struct GenerationView: View {
         return [fileURL]
     }
 
-    // MARK: - Image Playground Handler
+    // MARK: - Image Generation
 
-    private func handleImagePlaygroundResult(url: URL) {
-        guard let data = try? Data(contentsOf: url) else { return }
-        guard let uiImage = UIImage(data: data) else { return }
+    @MainActor
+    private func generateImage() async {
+        #if canImport(ImagePlayground)
+        isGeneratingImage = true
+        imageError = nil
 
-        withAnimation {
-            generatedImage = uiImage
+        do {
+            let creator = try await ImageCreator()
+            let text = viewModel.generationService.streamedText
+            let title = text.markdownTitle ?? "Creative food dish"
+            let concepts: [ImagePlaygroundConcept] = [
+                .text(title),
+                .extracted(from: text.strippedMarkdown, title: title)
+            ]
+
+            let images = creator.images(for: concepts, style: .illustration, limit: 1)
+            for try await createdImage in images {
+                let uiImage = UIImage(cgImage: createdImage.cgImage)
+                withAnimation {
+                    generatedImage = uiImage
+                }
+                generatedImageData = uiImage.jpegData(compressionQuality: 0.8)
+                break
+            }
+        } catch {
+            imageError = error.localizedDescription
         }
-        generatedImageData = uiImage.jpegData(compressionQuality: 0.8)
+
+        isGeneratingImage = false
+        #endif
     }
 
     // MARK: - Subviews

@@ -34,4 +34,16 @@ extension String {
         }
         return title
     }
+
+    /// Returns the text with Markdown syntax stripped, suitable for Image Playground extraction.
+    var strippedMarkdown: String {
+        self
+            .replacingOccurrences(of: "### ", with: "")
+            .replacingOccurrences(of: "## ", with: "")
+            .replacingOccurrences(of: "# ", with: "")
+            .replacingOccurrences(of: "**", with: "")
+            .replacingOccurrences(of: "*", with: "")
+            .replacingOccurrences(of: "---", with: "")
+            .replacingOccurrences(of: "- ", with: "")
+    }
 }
