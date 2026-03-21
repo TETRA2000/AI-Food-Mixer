@@ -21,18 +21,16 @@ struct GenerationView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if isGeneratingImage || viewModel.generationService.isGenerating {
+                if isGeneratingImage || viewModel.generationService.isGenerating || (hasStartedGeneration && generatedImage == nil) {
                     generatingHeader
                 }
 
                 if let error = viewModel.generationService.error {
                     errorView(error)
-                } else if isGeneratingImage {
+                } else if hasStartedGeneration {
                     scrollableContent
-                } else if viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating {
-                    emptyState
                 } else {
-                    scrollableContent
+                    emptyState
                 }
             }
             .navigationTitle("Food Concept")
@@ -78,7 +76,19 @@ struct GenerationView: View {
             } message: {
                 Text("Give your creation a name.")
             }
-            .task {
+            .onAppear {
+                // Reset all state for a fresh generation
+                viewModel.generationService.streamedText = ""
+                viewModel.generationService.error = nil
+                viewModel.projectTitle = ""
+                generatedImage = nil
+                generatedImageData = nil
+                isGeneratingImage = false
+                imageError = nil
+                hasStartedGeneration = false
+            }
+            .task(id: viewModel.isShowingGeneration) {
+                guard viewModel.isShowingGeneration else { return }
                 guard !hasStartedGeneration else { return }
                 hasStartedGeneration = true
 
