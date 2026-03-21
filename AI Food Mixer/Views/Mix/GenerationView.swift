@@ -80,13 +80,12 @@ struct GenerationView: View {
                 guard !hasStartedGeneration else { return }
                 hasStartedGeneration = true
 
+                // Generate image first, then text
+                await generateImage()
+
                 let settingsVM = SettingsViewModel()
                 let prompt = settingsVM.activeGenerationPrompt(modelContext: modelContext)
-
-                // Run text generation and image generation concurrently
-                async let textGeneration: Void = viewModel.mix(systemPrompt: prompt)
-                async let imageGeneration: Void = generateImage()
-                _ = await (textGeneration, imageGeneration)
+                await viewModel.mix(systemPrompt: prompt)
             }
         }
     }
