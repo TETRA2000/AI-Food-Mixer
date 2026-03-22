@@ -44,6 +44,7 @@ struct GenerationView: View {
                         dismiss()
                     }
                 }
+                #if os(iOS)
                 ToolbarItemGroup(placement: .primaryAction) {
                     if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating && generatedImage != nil {
                         Button {
@@ -60,12 +61,44 @@ struct GenerationView: View {
                         }
                     }
                 }
+                #endif
             }
+            #if os(macOS)
+            .safeAreaInset(edge: .bottom) {
+                if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating && generatedImage != nil {
+                    HStack {
+                        Spacer()
+                        Button {
+                            showShareSheet = true
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                        Button {
+                            viewModel.projectTitle = viewModel.generationService.generatedFoodName ?? ""
+                            showSaveConfirmation = true
+                        } label: {
+                            Label("Save", systemImage: "square.and.arrow.down")
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial)
+                }
+            }
+            #endif
+            #if os(iOS)
             .sheet(isPresented: $showShareSheet) {
                 if let generatedImage {
                     ShareSheetView(activityItems: [generatedImage])
                 }
             }
+            #else
+            .background {
+                if let generatedImage {
+                    MacShareButton(isPresented: $showShareSheet, items: [generatedImage])
+                }
+            }
+            #endif
             .alert("Save Creation", isPresented: $showSaveConfirmation) {
                 TextField("Creation Name", text: $viewModel.projectTitle)
                 Button("Save") {

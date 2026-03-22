@@ -65,11 +65,19 @@ struct ProjectDetailView: View {
                 .accessibilityLabel("Delete")
             }
         }
+        #if os(iOS)
         .sheet(isPresented: $showShareSheet) {
             if let image = project.image {
                 ShareSheetView(activityItems: [image])
             }
         }
+        #else
+        .background {
+            if let image = project.image {
+                MacShareButton(isPresented: $showShareSheet, items: [image])
+            }
+        }
+        #endif
         .alert("Delete Creation", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) {
                 modelContext.delete(project)
