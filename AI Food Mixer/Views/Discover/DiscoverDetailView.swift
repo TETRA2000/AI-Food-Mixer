@@ -63,6 +63,8 @@ struct DiscoverDetailView: View {
             .padding()
         }
         .navigationTitle(item.title)
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }

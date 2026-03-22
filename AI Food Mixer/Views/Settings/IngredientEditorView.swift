@@ -63,7 +63,9 @@ struct IngredientEditorView: View {
                 }
             }
             .navigationTitle("New Ingredient")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

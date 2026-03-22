@@ -56,9 +56,16 @@ struct MixView: View {
                     }
                 }
             }
+            #if os(iOS)
             .fullScreenCover(isPresented: $viewModel.isShowingGeneration) {
                 GenerationView(viewModel: viewModel)
             }
+            #else
+            .sheet(isPresented: $viewModel.isShowingGeneration) {
+                GenerationView(viewModel: viewModel)
+                    .frame(minWidth: 500, minHeight: 600)
+            }
+            #endif
         }
     }
 }

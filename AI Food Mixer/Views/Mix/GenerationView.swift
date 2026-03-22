@@ -13,7 +13,7 @@ struct GenerationView: View {
     @State private var showShareSheet = false
     @State private var showSaveConfirmation = false
     @State private var hasStartedGeneration = false
-    @State private var generatedImage: UIImage?
+    @State private var generatedImage: PlatformImage?
     @State private var generatedImageData: Data?
     @State private var isGeneratingImage = false
     @State private var imageError: String?
@@ -34,7 +34,9 @@ struct GenerationView: View {
                 }
             }
             .navigationTitle("Food Concept")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
@@ -137,7 +139,7 @@ struct GenerationView: View {
 
                 // Generated image or progress
                 if let generatedImage {
-                    Image(uiImage: generatedImage)
+                    Image(platformImage: generatedImage)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -204,11 +206,11 @@ struct GenerationView: View {
             let images = creator.images(for: concepts, style: .animation, limit: 1)
             for try await createdImage in images {
                 try Task.checkCancellation()
-                let uiImage = UIImage(cgImage: createdImage.cgImage)
+                let image = PlatformImage(cgImage: createdImage.cgImage)
                 withAnimation {
-                    generatedImage = uiImage
+                    generatedImage = image
                 }
-                generatedImageData = uiImage.jpegData(compressionQuality: 0.8)
+                generatedImageData = image.jpegData(compressionQuality: 0.8)
                 break
             }
         } catch is CancellationError {
