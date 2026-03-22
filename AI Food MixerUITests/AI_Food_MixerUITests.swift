@@ -67,13 +67,12 @@ final class AI_Food_MixerUITests: XCTestCase {
 
     @MainActor
     func testIngredientCardSelection() throws {
-        // Find and tap the first ingredient card
-        let firstCard = app.buttons.matching(identifier: "Banana").firstMatch
-        if firstCard.waitForExistence(timeout: 5) {
-            firstCard.tap()
-            // Mixing Bowl header should appear
-            XCTAssertTrue(app.staticTexts["Mixing Bowl"].waitForExistence(timeout: 5))
-        }
+        // Target "Grapes" — the first ingredient in the first category, always visible without scrolling
+        let firstCard = app.buttons.matching(identifier: "Grapes").firstMatch
+        guard firstCard.waitForExistence(timeout: 5) else { return }
+        firstCard.tap()
+        // Mixing Bowl header should appear
+        XCTAssertTrue(app.staticTexts["Mixing Bowl"].waitForExistence(timeout: 5))
     }
 
     // MARK: - Creations Tab
