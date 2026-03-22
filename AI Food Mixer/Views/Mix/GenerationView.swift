@@ -60,8 +60,8 @@ struct GenerationView: View {
                 }
             }
             .sheet(isPresented: $showShareSheet) {
-                if let generatedImage {
-                    ShareSheetView(activityItems: [generatedImage])
+                if let url = ExportService.imageFileURL(imageData: generatedImageData) {
+                    ShareSheetView(activityItems: [url])
                 }
             }
             .alert("Save Creation", isPresented: $showSaveConfirmation) {
