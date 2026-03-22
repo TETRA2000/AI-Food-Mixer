@@ -16,22 +16,40 @@ struct MixingBowlView: View {
                         isExpanded.toggle()
                     }
                 } label: {
-                    HStack {
-                        Text("🥘")
-                            .font(.title2)
-                        Text("Mixing Bowl")
-                            .font(.headline)
-                        Spacer()
-                        Text("\(ingredients.count)")
-                            .font(.subheadline)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Capsule().fill(Color.accentColor))
-                        Image(systemName: isExpanded ? "chevron.down" : "chevron.up")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    VStack(spacing: 6) {
+                        HStack {
+                            Text("🥘")
+                                .font(.title2)
+                            Text("Mixing Bowl")
+                                .font(.headline)
+                            Spacer()
+                            Text("\(ingredients.count)")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Capsule().fill(Color.accentColor))
+                            Image(systemName: isExpanded ? "chevron.down" : "chevron.up")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if !isExpanded {
+                            HStack(spacing: 2) {
+                                ForEach(ingredients.prefix(8)) { ingredient in
+                                    Text(ingredient.emoji)
+                                        .font(.title3)
+                                }
+                                if ingredients.count > 8 {
+                                    Text("+\(ingredients.count - 8)")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .transition(.opacity)
+                        }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
