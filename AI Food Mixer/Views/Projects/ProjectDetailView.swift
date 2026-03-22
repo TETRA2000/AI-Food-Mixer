@@ -64,8 +64,8 @@ struct ProjectDetailView: View {
             }
         }
         .sheet(isPresented: $showShareSheet) {
-            if let url = ExportService.imageFileURL(imageData: project.imageData, title: project.title) {
-                ShareSheetView(activityItems: [url])
+            if let image = project.image {
+                ShareSheetView(activityItems: [image])
             }
         }
         .alert("Delete Creation", isPresented: $showDeleteConfirmation) {
