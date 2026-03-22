@@ -1,4 +1,6 @@
 import SwiftUI
+
+#if os(iOS)
 import UIKit
 
 struct ShareSheetView: UIViewControllerRepresentable {
@@ -14,3 +16,23 @@ struct ShareSheetView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
+#elseif os(macOS)
+import AppKit
+
+struct ShareSheetView: NSViewRepresentable {
+    let activityItems: [Any]
+
+    func makeNSView(context: Context) -> NSView {
+        NSView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        // Present the sharing picker when the view appears
+        DispatchQueue.main.async {
+            guard let window = nsView.window else { return }
+            let picker = NSSharingServicePicker(items: activityItems)
+            picker.show(relativeTo: nsView.bounds, of: nsView, preferredEdge: .minY)
+        }
+    }
+}
+#endif

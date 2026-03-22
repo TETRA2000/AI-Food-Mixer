@@ -1,6 +1,9 @@
+#if os(iOS)
 import UIKit
+#endif
 
 enum HapticService {
+    #if os(iOS)
     static func selection() {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
@@ -25,4 +28,11 @@ enum HapticService {
         let generator = UIImpactFeedbackGenerator(style: .rigid)
         generator.impactOccurred(intensity: 0.5)
     }
+    #else
+    static func selection() {}
+    static func mixStart() {}
+    static func mixComplete() {}
+    static func error() {}
+    static func remove() {}
+    #endif
 }

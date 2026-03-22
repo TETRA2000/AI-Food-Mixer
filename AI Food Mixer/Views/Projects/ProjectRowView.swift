@@ -7,7 +7,7 @@ struct ProjectRowView: View {
         HStack(spacing: 12) {
             // Thumbnail
             if let image = project.image {
-                Image(uiImage: image)
+                Image(platformImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 48, height: 48)

@@ -25,8 +25,13 @@ struct SettingsView: View {
                     HStack {
                         Text("Platform")
                         Spacer()
+                        #if os(macOS)
+                        Text("macOS 26")
+                            .foregroundStyle(.secondary)
+                        #else
                         Text("iOS 26")
                             .foregroundStyle(.secondary)
+                        #endif
                     }
                 } header: {
                     Text("About")

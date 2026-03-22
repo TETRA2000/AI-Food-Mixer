@@ -1,6 +1,11 @@
 import Foundation
 import SwiftData
+
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 @Model
 final class Project {
@@ -30,9 +35,9 @@ final class Project {
         self.imageData = imageData
     }
 
-    var image: UIImage? {
+    var image: PlatformImage? {
         guard let imageData else { return nil }
-        return UIImage(data: imageData)
+        return PlatformImage(data: imageData)
     }
 
     var ingredients: [IngredientData] {

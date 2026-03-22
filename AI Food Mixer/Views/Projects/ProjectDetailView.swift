@@ -18,7 +18,7 @@ struct ProjectDetailView: View {
 
                 // Saved image
                 if let image = project.image {
-                    Image(uiImage: image)
+                    Image(platformImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -34,7 +34,9 @@ struct ProjectDetailView: View {
             .padding()
         }
         .navigationTitle(project.title)
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 if project.image != nil {
