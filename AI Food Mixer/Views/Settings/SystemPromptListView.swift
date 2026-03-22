@@ -6,6 +6,7 @@ struct SystemPromptListView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = SettingsViewModel()
     @State private var showAddPrompt = false
+    @State private var showResetConfirmation = false
 
     var body: some View {
         List {
@@ -50,12 +51,31 @@ struct SystemPromptListView: View {
         .navigationTitle("System Prompts")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showAddPrompt = true
-                } label: {
-                    Image(systemName: "plus")
+                HStack {
+                    Button {
+                        showResetConfirmation = true
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
+                    }
+                    Button {
+                        showAddPrompt = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
+        }
+        .confirmationDialog(
+            "Reset to Defaults",
+            isPresented: $showResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset", role: .destructive) {
+                viewModel.resetDefaultPrompts(modelContext: modelContext)
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This will restore all default system prompts to their original content. Custom prompts will not be affected.")
         }
         .sheet(isPresented: $showAddPrompt) {
             SystemPromptEditorView(prompt: nil)
