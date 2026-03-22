@@ -33,6 +33,22 @@ final class SettingsViewModel {
         try? modelContext.save()
     }
 
+    func resetDefaultPrompts(modelContext: ModelContext) {
+        let descriptor = FetchDescriptor<SystemPrompt>(
+            predicate: #Predicate { $0.isDefault == true }
+        )
+        if let existing = try? modelContext.fetch(descriptor) {
+            for prompt in existing {
+                modelContext.delete(prompt)
+            }
+        }
+        for purpose in PromptPurpose.allCases {
+            let prompt = DefaultSystemPrompts.makeDefault(purpose: purpose)
+            modelContext.insert(prompt)
+        }
+        try? modelContext.save()
+    }
+
     // MARK: - Custom Category Management
 
     func addCategory(

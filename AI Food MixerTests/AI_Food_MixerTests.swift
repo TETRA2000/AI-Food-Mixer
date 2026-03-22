@@ -1,5 +1,6 @@
 import Testing
 import SwiftUI
+import SwiftData
 import Foundation
 @testable import AI_Food_Mixer
 
@@ -925,6 +926,60 @@ struct AI_Food_MixerTests {
     @Test func settingsViewModelInstantiation() {
         let vm = SettingsViewModel()
         #expect(type(of: vm) == SettingsViewModel.self)
+    }
+
+    @Test func resetDefaultPromptsRestoresDefaults() throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: SystemPrompt.self, configurations: config)
+        let context = ModelContext(container)
+
+        let vm = SettingsViewModel()
+
+        // Seed defaults
+        vm.seedDefaultPrompts(modelContext: context)
+        let descriptor = FetchDescriptor<SystemPrompt>(
+            predicate: #Predicate { $0.isDefault == true }
+        )
+        let seeded = try context.fetch(descriptor)
+        #expect(seeded.count == PromptPurpose.allCases.count)
+
+        // Modify a default prompt
+        seeded.first?.body = "Modified body"
+        try context.save()
+
+        // Reset defaults
+        vm.resetDefaultPrompts(modelContext: context)
+
+        let restored = try context.fetch(descriptor)
+        #expect(restored.count == PromptPurpose.allCases.count)
+        for prompt in restored {
+            let expected = DefaultSystemPrompts.makeDefault(purpose: prompt.purpose)
+            #expect(prompt.body == expected.body)
+            #expect(prompt.name == expected.name)
+        }
+    }
+
+    @Test func resetDefaultPromptsPreservesCustomPrompts() throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: SystemPrompt.self, configurations: config)
+        let context = ModelContext(container)
+
+        let vm = SettingsViewModel()
+        vm.seedDefaultPrompts(modelContext: context)
+
+        // Add a custom prompt
+        let custom = SystemPrompt(name: "Custom", body: "Custom body", purpose: .generation)
+        context.insert(custom)
+        try context.save()
+
+        // Reset defaults
+        vm.resetDefaultPrompts(modelContext: context)
+
+        let allPrompts = try context.fetch(FetchDescriptor<SystemPrompt>())
+        let customPrompts = allPrompts.filter { !$0.isDefault }
+        #expect(customPrompts.count == 1)
+        #expect(customPrompts.first?.name == "Custom")
+        #expect(customPrompts.first?.body == "Custom body")
     }
 
     // MARK: - Project Model

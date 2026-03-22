@@ -63,6 +63,14 @@ The default prompt instructs the model to produce:
 - Serving suggestion
 - Drink/side pairings
 
+### Resetting System Prompts to Defaults
+
+1. Navigate to Settings > System Prompts
+2. Tap the reset button (arrow icon) in the toolbar
+3. Confirm the reset in the dialog
+
+This restores all default system prompts to their original content. Custom prompts are not affected.
+
 ### Tips for Prompt Tuning
 
 - Be specific about output format (Markdown headings, bullet points)
