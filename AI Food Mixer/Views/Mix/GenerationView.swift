@@ -68,7 +68,6 @@ struct GenerationView: View {
                 TextField("Creation Name", text: $viewModel.projectTitle)
                 Button("Save") {
                     viewModel.saveProject(modelContext: modelContext, imageData: generatedImageData)
-                    dismiss()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
