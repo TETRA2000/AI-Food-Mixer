@@ -11,6 +11,8 @@ final class FoodGenerationService {
     var streamedText = ""
     var error: String?
 
+    private var generationTask: Task<Void, Never>?
+
     #if canImport(FoundationModels)
     private var session: LanguageModelSession?
     #endif
@@ -38,44 +40,65 @@ final class FoodGenerationService {
         streamedText = ""
         error = nil
 
-        #if canImport(FoundationModels)
-        guard SystemLanguageModel.default.availability == .available else {
-            error = "Foundation Model is not available on this device. Please use a supported device running iOS 26 or later."
-            isGenerating = false
-            return
-        }
+        // Cancel any previous generation task
+        generationTask?.cancel()
 
-        let session = LanguageModelSession(instructions: systemPrompt)
-        self.session = session
-
-        let ingredientList = ingredients
-            .map { "- \($0.emoji) \($0.label) (\($0.categoryId))" }
-            .joined(separator: "\n")
-
-        let userPrompt = """
-        Selected ingredients:
-        \(ingredientList)
-
-        Create a creative food concept that combines these ingredients into one dish.
-        """
-
-        do {
-            let stream = session.streamResponse(to: userPrompt)
-            for try await partial in stream {
-                streamedText = partial.content
+        let task = Task { @MainActor in
+            #if canImport(FoundationModels)
+            guard SystemLanguageModel.default.availability == .available else {
+                error = "Foundation Model is not available on this device. Please use a supported device running iOS 26 or later."
+                isGenerating = false
+                return
             }
-        } catch {
-            self.error = "Generation failed: \(error.localizedDescription)"
-        }
-        #else
-        // Simulator fallback: generate a placeholder food concept
-        await generatePlaceholder(ingredients: ingredients)
-        #endif
 
-        isGenerating = false
+            let session = LanguageModelSession(instructions: systemPrompt)
+            self.session = session
+
+            let ingredientList = ingredients
+                .map { "- \($0.emoji) \($0.label) (\($0.categoryId))" }
+                .joined(separator: "\n")
+
+            let userPrompt = """
+            Selected ingredients:
+            \(ingredientList)
+
+            Create a creative food concept that combines these ingredients into one dish.
+            """
+
+            do {
+                let stream = session.streamResponse(to: userPrompt)
+                for try await partial in stream {
+                    try Task.checkCancellation()
+                    streamedText = partial.content
+                }
+            } catch is CancellationError {
+                // Task was cancelled (e.g. user dismissed the view) — not an error
+                return
+            } catch {
+                self.error = "Generation failed: \(error.localizedDescription)"
+            }
+            #else
+            // Simulator fallback: generate a placeholder food concept
+            do {
+                try await generatePlaceholder(ingredients: ingredients)
+            } catch is CancellationError {
+                return
+            } catch {
+                self.error = "Generation failed: \(error.localizedDescription)"
+            }
+            #endif
+
+            isGenerating = false
+        }
+        generationTask = task
+
+        // Wait for the generation task to complete
+        await task.value
     }
 
     func cancel() {
+        generationTask?.cancel()
+        generationTask = nil
         #if canImport(FoundationModels)
         session = nil
         #endif
@@ -85,7 +108,7 @@ final class FoodGenerationService {
     // MARK: - Simulator Placeholder
 
     @MainActor
-    private func generatePlaceholder(ingredients: [IngredientData]) async {
+    private func generatePlaceholder(ingredients: [IngredientData]) async throws {
         let ingredientList = ingredients
             .map { "- \($0.emoji) **\($0.label)**" }
             .joined(separator: "\n")
@@ -139,11 +162,12 @@ final class FoodGenerationService {
         var current = ""
         var i = 0
         while i < characters.count {
+            try Task.checkCancellation()
             let chunkEnd = min(i + 6, characters.count)
             current += String(characters[i..<chunkEnd])
             streamedText = current
             i = chunkEnd
-            try? await Task.sleep(for: .milliseconds(15))
+            try await Task.sleep(for: .milliseconds(15))
         }
     }
 }
