@@ -84,33 +84,13 @@ User-created category persisted via SwiftData.
 | `secondaryColorHex` | `String` | Secondary color |
 | `sortOrder` | `Int` | Display order |
 
-### SystemPrompt
-
-Editable system prompt for Foundation Model generation.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `promptId` | `UUID` | Unique identifier |
-| `name` | `String` | Display name |
-| `body` | `String` | Full prompt text |
-| `purposeRaw` | `String` | Raw value of `PromptPurpose` |
-| `isDefault` | `Bool` | Whether built-in default |
-
 ## Default Data
 
 | Data Set | Count | File |
 |----------|-------|------|
 | Categories | 10 | `DefaultCategories.swift` |
 | Ingredients | ~120 | `DefaultIngredients.swift` |
-| System Prompts | 1 (generation) | `DefaultSystemPrompts.swift` |
+| System Prompt | 1 (generation) | `DefaultSystemPrompts.swift` |
 | Discover Items | 5 | `DefaultDiscoverItems.swift` |
 
-## Enum: PromptPurpose
-
-Single-case enum for future extensibility:
-
-```swift
-enum PromptPurpose: String, Codable, CaseIterable {
-    case generation  // Food concept generation
-}
-```
+The generation system prompt is defined as a static string in `DefaultSystemPrompts.generationPromptBody` and used directly by `FoodGenerationService`.

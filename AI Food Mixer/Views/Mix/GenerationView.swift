@@ -92,9 +92,7 @@ struct GenerationView: View {
                 // Generate image first, then text
                 await generateImage()
 
-                let settingsVM = SettingsViewModel()
-                let prompt = settingsVM.activeGenerationPrompt(modelContext: modelContext)
-                await viewModel.mix(systemPrompt: prompt)
+                await viewModel.mix()
             }
         }
     }

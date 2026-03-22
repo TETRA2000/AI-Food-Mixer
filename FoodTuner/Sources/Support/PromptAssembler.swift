@@ -3,7 +3,7 @@ import Foundation
 enum PromptAssembler {
 
     /// Build the user prompt from selected ingredients.
-    /// Matches the logic in FoodGenerationService.generate(ingredients:systemPrompt:).
+    /// Matches the logic in FoodGenerationService.generate(ingredients:).
     static func buildUserPrompt(from ingredients: [IngredientData]) -> String {
         let ingredientList = ingredients
             .map { "- \($0.emoji) \($0.label) (\($0.categoryId))" }
@@ -17,11 +17,9 @@ enum PromptAssembler {
         """
     }
 
-    /// Return the default system prompt body for a given purpose.
-    static func systemPrompt(for purpose: PromptPurpose) -> String {
-        switch purpose {
-        case .generation: DefaultSystemPrompts.generationPromptBody
-        }
+    /// Return the default system prompt body.
+    static func systemPrompt() -> String {
+        DefaultSystemPrompts.generationPromptBody
     }
 
     /// Resolve ingredient IDs to IngredientData, splitting into valid and invalid.

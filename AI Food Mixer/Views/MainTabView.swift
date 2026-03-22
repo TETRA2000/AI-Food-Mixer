@@ -34,7 +34,7 @@ struct MainTabView: View {
 #Preview {
     MainTabView()
         .modelContainer(
-            for: [Project.self, CustomIngredient.self, CustomCategory.self, SystemPrompt.self],
+            for: [Project.self, CustomIngredient.self, CustomCategory.self],
             inMemory: true
         )
 }

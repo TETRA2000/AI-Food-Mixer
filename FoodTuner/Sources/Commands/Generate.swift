@@ -16,9 +16,6 @@ struct Generate: AsyncParsableCommand {
     @Option(name: .long, help: "Path to a custom system prompt file (overrides default).")
     var systemPromptFile: String?
 
-    @Option(name: .long, help: "Prompt purpose: generation.")
-    var purpose: String = "generation"
-
     @Option(name: .long, help: "Path to custom data JSON file.")
     var customFile: String?
 
@@ -27,10 +24,6 @@ struct Generate: AsyncParsableCommand {
 
     func run() async throws {
         #if canImport(FoundationModels)
-        guard let promptPurpose = PromptPurpose(rawValue: purpose) else {
-            throw ValidationError("Invalid purpose '\(purpose)'. Use: generation.")
-        }
-
         let idList = ids.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
         let allIngredients = CustomDataStore.mergedIngredients(customFile: customFile)
         let (valid, invalid) = PromptAssembler.resolveIngredients(ids: idList, allIngredients: allIngredients)
@@ -47,7 +40,7 @@ struct Generate: AsyncParsableCommand {
         if let file = systemPromptFile {
             systemPrompt = try String(contentsOfFile: file, encoding: .utf8)
         } else {
-            systemPrompt = PromptAssembler.systemPrompt(for: promptPurpose)
+            systemPrompt = PromptAssembler.systemPrompt()
         }
 
         let userPrompt = PromptAssembler.buildUserPrompt(from: valid)
