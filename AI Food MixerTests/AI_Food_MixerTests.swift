@@ -1074,6 +1074,22 @@ struct AI_Food_MixerTests {
         #expect(filename.hasSuffix(".json"))
     }
 
+    @Test func exportImageFile() throws {
+        // Create a 1x1 red pixel JPEG
+        let image = UIImage(systemName: "star")!
+        let data = image.jpegData(compressionQuality: 0.8)
+        let url = ExportService.imageFileURL(imageData: data, title: "Test Image")
+        #expect(url != nil)
+        #expect(url?.lastPathComponent == "Test_Image.jpg")
+        let savedData = try Data(contentsOf: url!)
+        #expect(savedData == data)
+    }
+
+    @Test func exportImageFileNilData() {
+        let url = ExportService.imageFileURL(imageData: nil)
+        #expect(url == nil)
+    }
+
     // MARK: - FoodGenerationService
 
     @Test func foodGenerationServiceInitialState() {

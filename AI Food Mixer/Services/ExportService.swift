@@ -1,6 +1,19 @@
 import Foundation
+import UIKit
 
 enum ExportService {
+    /// Write image data to a temporary JPEG file and return its URL.
+    static func imageFileURL(imageData: Data?, title: String = "FoodConcept") -> URL? {
+        guard let imageData else { return nil }
+        let fileName = sanitizeFileName(title) + ".jpg"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        do {
+            try imageData.write(to: url)
+            return url
+        } catch {
+            return nil
+        }
+    }
     /// Write the concept markdown to a temporary file and return its URL.
     static func markdownFileURL(title: String, content: String) -> URL? {
         let fileName = sanitizeFileName(title) + ".md"
