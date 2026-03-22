@@ -2,21 +2,9 @@ import SwiftUI
 import SwiftData
 
 struct SettingsView: View {
-    @State private var viewModel = SettingsViewModel()
-
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    NavigationLink {
-                        SystemPromptListView()
-                    } label: {
-                        Label("System Prompts", systemImage: "text.bubble")
-                    }
-                } header: {
-                    Text("AI Configuration")
-                }
-
                 Section {
                     NavigationLink {
                         IngredientManagerView()
@@ -51,5 +39,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
-        .modelContainer(for: [SystemPrompt.self, CustomCategory.self, CustomIngredient.self], inMemory: true)
+        .modelContainer(for: [CustomCategory.self, CustomIngredient.self], inMemory: true)
 }

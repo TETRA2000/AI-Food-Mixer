@@ -13,9 +13,6 @@ struct BuildPrompt: ParsableCommand {
     @Option(name: .long, help: "Path to a custom system prompt file (overrides default).")
     var systemPromptFile: String?
 
-    @Option(name: .long, help: "Prompt purpose: generation.")
-    var purpose: String = "generation"
-
     @Option(name: .long, help: "Path to custom data JSON file.")
     var customFile: String?
 
@@ -23,10 +20,6 @@ struct BuildPrompt: ParsableCommand {
     var json: Bool = false
 
     func run() throws {
-        guard let promptPurpose = PromptPurpose(rawValue: purpose) else {
-            throw ValidationError("Invalid purpose '\(purpose)'. Use: generation.")
-        }
-
         let idList = ids.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
         let allIngredients = CustomDataStore.mergedIngredients(customFile: customFile)
         let (valid, invalid) = PromptAssembler.resolveIngredients(ids: idList, allIngredients: allIngredients)
@@ -45,7 +38,7 @@ struct BuildPrompt: ParsableCommand {
             systemPrompt = try String(contentsOfFile: file, encoding: .utf8)
             systemPromptSource = file
         } else {
-            systemPrompt = PromptAssembler.systemPrompt(for: promptPurpose)
+            systemPrompt = PromptAssembler.systemPrompt()
             systemPromptSource = "default"
         }
 
@@ -55,7 +48,6 @@ struct BuildPrompt: ParsableCommand {
             systemPrompt: systemPrompt,
             userPrompt: userPrompt,
             ingredients: valid,
-            purpose: promptPurpose,
             systemPromptSource: systemPromptSource,
             json: json
         ))

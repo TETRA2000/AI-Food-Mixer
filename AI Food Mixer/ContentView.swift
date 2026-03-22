@@ -10,7 +10,7 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(
-            for: [Project.self, CustomIngredient.self, CustomCategory.self, SystemPrompt.self],
+            for: [Project.self, CustomIngredient.self, CustomCategory.self],
             inMemory: true
         )
 }

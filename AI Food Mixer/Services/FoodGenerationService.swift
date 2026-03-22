@@ -24,7 +24,8 @@ final class FoodGenerationService {
     }
 
     @MainActor
-    func generate(ingredients: [IngredientData], systemPrompt: String) async {
+    func generate(ingredients: [IngredientData]) async {
+        let systemPrompt = DefaultSystemPrompts.generationPromptBody
         isGenerating = true
         streamedText = ""
         error = nil
