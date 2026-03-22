@@ -888,8 +888,8 @@ struct AI_Food_MixerTests {
         #expect(vm.selectedCount == 2)
 
         vm.surpriseMe(customCategories: [], customIngredients: [])
-        // Should now have exactly one per category, not 2 + categories
-        #expect(vm.selectedCount == DefaultCategories.all.count)
+        // Should clear existing selection and pick 3–6 random ingredients
+        #expect(vm.selectedCount >= 3 && vm.selectedCount <= 6)
     }
 
     @Test func mixViewModelIngredientsForUnknownCategory() {
