@@ -10,7 +10,7 @@ struct ShowPrompts: ParsableCommand {
     var json: Bool = false
 
     func run() throws {
-        let body = DefaultSystemPrompts.generationPromptBody
-        print(OutputFormatter.formatPrompts(body: body, json: json))
+        let body = PromptAssembler.systemPrompt()
+        print(OutputFormatter.formatPrompt(body: body, json: json))
     }
 }

@@ -65,7 +65,7 @@ The default generation prompt instructs the model to produce structured food con
 - Serving suggestion
 - Pairing recommendations
 
-The prompt is stored in `DefaultSystemPrompts.swift`.
+The prompt is defined as a static string in `DefaultSystemPrompts.swift`.
 
 ## Simulator Fallback
 

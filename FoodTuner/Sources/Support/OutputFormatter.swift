@@ -41,9 +41,9 @@ enum OutputFormatter {
         return lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    // MARK: - Prompts
+    // MARK: - Prompt
 
-    static func formatPrompts(body: String, json: Bool) -> String {
+    static func formatPrompt(body: String, json: Bool) -> String {
         if json {
             let item = PromptOutput(purpose: "generation", name: "Food Concept Generation", body: body)
             return encodeCodableJSON(PromptsOutput(prompts: [item]))

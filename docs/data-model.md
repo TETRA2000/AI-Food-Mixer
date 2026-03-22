@@ -92,3 +92,5 @@ User-created category persisted via SwiftData.
 | Ingredients | ~120 | `DefaultIngredients.swift` |
 | System Prompt | 1 (generation) | `DefaultSystemPrompts.swift` |
 | Discover Items | 5 | `DefaultDiscoverItems.swift` |
+
+The generation system prompt is defined as a static string in `DefaultSystemPrompts.generationPromptBody` and used directly by `FoodGenerationService`.

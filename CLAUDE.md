@@ -47,7 +47,7 @@ Foundation Model and Image Playground features require an Apple Silicon device. 
 
 - **Value types for defaults** — Built-in ingredients/categories are static `[IngredientData]`/`[CategoryData]` arrays, NOT SwiftData models. This avoids schema migration issues.
 - **JSON blob storage** — `Project.ingredientsData` stores ingredients as encoded JSON `Data`, making projects self-contained.
-- **Static system prompt** — The generation prompt lives in `DefaultSystemPrompts.generationPromptBody` as a plain string constant.
+- **Fixed system prompt** — The generation prompt is a static string in `DefaultSystemPrompts.generationPromptBody`, used directly by `FoodGenerationService`.
 - **Simulator fallback** — `FoodGenerationService` uses `#if canImport(FoundationModels)` to provide placeholder content on simulator.
 - **Image generation** — `GenerationView` uses `#if canImport(ImagePlayground)` to generate food concept images on-device.
 

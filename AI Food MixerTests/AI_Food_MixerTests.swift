@@ -1094,7 +1094,7 @@ struct AI_Food_MixerTests {
             IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
             IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
         ]
-        await service.generate(ingredients: ingredients, systemPrompt: "test")
+        await service.generate(ingredients: ingredients)
 
         // After generation completes, isGenerating should be false
         #expect(!service.isGenerating)
@@ -1110,7 +1110,7 @@ struct AI_Food_MixerTests {
         let ingredients = [
             IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
         ]
-        await service.generate(ingredients: ingredients, systemPrompt: "test")
+        await service.generate(ingredients: ingredients)
 
         #expect(!service.isGenerating)
         if service.error == nil {
@@ -1125,7 +1125,7 @@ struct AI_Food_MixerTests {
             IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
             IngredientData(id: "3", emoji: "🍕", label: "Pizza", categoryId: "preparedDishes", colorHex: "#F90"),
         ]
-        await service.generate(ingredients: ingredients, systemPrompt: "test")
+        await service.generate(ingredients: ingredients)
 
         #expect(!service.isGenerating)
         if service.error == nil {
@@ -1151,10 +1151,10 @@ struct AI_Food_MixerTests {
         ]
 
         // Run generation once
-        await service.generate(ingredients: ingredients, systemPrompt: "test")
+        await service.generate(ingredients: ingredients)
 
         // Run again - should clear previous state
-        await service.generate(ingredients: ingredients, systemPrompt: "test")
+        await service.generate(ingredients: ingredients)
 
         #expect(!service.isGenerating)
         // streamedText is cleared at start of each generate call
@@ -1169,7 +1169,7 @@ struct AI_Food_MixerTests {
             IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
             IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
         ]
-        await service.generate(ingredients: ingredients, systemPrompt: "test")
+        await service.generate(ingredients: ingredients)
 
         // On CI/Xcode Cloud, the model may report as available but fail at runtime
         // with a GenerationError — so we only verify the post-condition is consistent:
@@ -1473,7 +1473,7 @@ struct AI_Food_MixerTests {
         let vm = MixViewModel()
         let ingredients = Array(DefaultIngredients.fruits.prefix(2))
         vm.loadIngredients(ingredients)
-        await vm.mix(systemPrompt: "test")
+        await vm.mix()
 
         // After mix completes, generation service should not be generating
         #expect(!vm.generationService.isGenerating)
