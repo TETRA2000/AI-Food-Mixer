@@ -37,12 +37,14 @@ struct ProjectDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
-                Button {
-                    showShareSheet = true
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
+                if project.image != nil {
+                    Button {
+                        showShareSheet = true
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .accessibilityLabel("Share")
                 }
-                .accessibilityLabel("Share")
 
                 if let onRemix {
                     Button {
@@ -62,11 +64,8 @@ struct ProjectDetailView: View {
             }
         }
         .sheet(isPresented: $showShareSheet) {
-            if let url = ExportService.markdownFileURL(
-                title: project.title,
-                content: project.generatedConcept
-            ) {
-                ShareSheetView(activityItems: [url])
+            if let image = project.image {
+                ShareSheetView(activityItems: [image])
             }
         }
         .alert("Delete Creation", isPresented: $showDeleteConfirmation) {

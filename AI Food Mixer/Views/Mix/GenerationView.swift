@@ -43,7 +43,7 @@ struct GenerationView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .primaryAction) {
-                    if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating {
+                    if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating && generatedImage != nil {
                         Button {
                             showShareSheet = true
                         } label: {
@@ -59,11 +59,8 @@ struct GenerationView: View {
                 }
             }
             .sheet(isPresented: $showShareSheet) {
-                if let url = ExportService.markdownFileURL(
-                    title: viewModel.projectTitle.isEmpty ? "FoodConcept" : viewModel.projectTitle,
-                    content: viewModel.generationService.streamedText
-                ) {
-                    ShareSheetView(activityItems: shareItems(fileURL: url))
+                if let generatedImage {
+                    ShareSheetView(activityItems: [generatedImage])
                 }
             }
             .alert("Save Creation", isPresented: $showSaveConfirmation) {
@@ -180,13 +177,6 @@ struct GenerationView: View {
     }
 
     // MARK: - Helpers
-
-    private func shareItems(fileURL: URL) -> [Any] {
-        if let generatedImage {
-            return [generatedImage, fileURL]
-        }
-        return [fileURL]
-    }
 
     // MARK: - Image Generation
 
