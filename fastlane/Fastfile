@@ -1,0 +1,33 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build, upload to TestFlight, and submit for external (public) beta review"
+  lane :beta do
+    # --- Authentication ---
+    # Option 1: App Store Connect API Key (recommended)
+    # Place your .p8 key file somewhere safe and configure below:
+    #
+    # api_key = app_store_connect_api_key(
+    #   key_id: "XXXXXXXXXX",
+    #   issuer_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    #   key_filepath: "path/to/AuthKey_XXXXXXXXXX.p8",
+    # )
+    #
+    # Option 2: Apple ID (will prompt for password or use FASTLANE_PASSWORD env var)
+    # Set FASTLANE_USER or apple_id in Appfile
+
+    build_app(
+      scheme: "AI Food Mixer",
+      export_method: "app-store",
+      xcargs: "-allowProvisioningUpdates",
+    )
+
+    upload_to_testflight(
+      # api_key: api_key,  # Uncomment if using API key auth
+      distribute_external: true,
+      groups: ["External Testers"],
+      changelog: "New build for testing",
+      submit_beta_review: true,
+    )
+  end
+end
