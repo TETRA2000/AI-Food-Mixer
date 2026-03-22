@@ -28,10 +28,8 @@ struct ProjectDetailView: View {
                 Divider()
 
                 // Concept content
-                Text(AttributedString(fullMarkdown: project.generatedConcept))
-                    .font(.body)
+                MarkdownBlocksView(markdown: project.generatedConcept)
                     .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding()
         }

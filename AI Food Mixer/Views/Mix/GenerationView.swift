@@ -151,10 +151,8 @@ struct GenerationView: View {
                 }
 
                 // Markdown content
-                Text(AttributedString(fullMarkdown: viewModel.generationService.streamedText))
-                    .font(.body)
+                MarkdownBlocksView(markdown: viewModel.generationService.streamedText)
                     .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
             }
             .padding(.vertical)
