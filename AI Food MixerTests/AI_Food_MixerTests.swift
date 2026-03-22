@@ -1267,13 +1267,9 @@ struct AI_Food_MixerTests {
 
     @Test func foodGenerationServicePrewarmDoesNotCrash() {
         let service = FoodGenerationService()
-        let ingredients = [
-            IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
-            IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
-        ]
 
         // Prewarm should not crash or change observable state
-        service.prewarm(ingredients: ingredients)
+        service.prewarm()
         #expect(!service.isGenerating)
         #expect(service.streamedText.isEmpty)
         #expect(service.error == nil)
@@ -1287,7 +1283,7 @@ struct AI_Food_MixerTests {
         ]
 
         // Prewarm, then generate — should reuse the prewarmed session
-        service.prewarm(ingredients: ingredients)
+        service.prewarm()
         await service.generate(ingredients: ingredients)
 
         #expect(!service.isGenerating)
