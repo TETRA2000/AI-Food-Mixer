@@ -1256,8 +1256,13 @@ struct AI_Food_MixerTests {
         // Wait for the task to finish
         await generateTask.value
 
-        // Cancellation should not set an error
-        #expect(service.error == nil)
+        // Cancellation should not set an error and should stop generation early
+        await MainActor.run {
+            #expect(service.error == nil)
+            #expect(!service.isGenerating)
+            // streamedText should be shorter than the full placeholder (cancelled mid-stream)
+            #expect(service.streamedText.count < 500)
+        }
     }
 
     @Test func foodGenerationServicePrewarmDoesNotCrash() {

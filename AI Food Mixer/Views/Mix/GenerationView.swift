@@ -186,6 +186,7 @@ struct GenerationView: View {
         #if canImport(ImagePlayground)
         isGeneratingImage = true
         imageError = nil
+        defer { isGeneratingImage = false }
 
         do {
             try Task.checkCancellation()
@@ -219,8 +220,6 @@ struct GenerationView: View {
         } catch {
             imageError = error.localizedDescription
         }
-
-        isGeneratingImage = false
         #endif
     }
 

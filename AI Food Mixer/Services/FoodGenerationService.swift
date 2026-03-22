@@ -40,6 +40,7 @@ final class FoodGenerationService {
     func prewarm(ingredients: [IngredientData]) {
         #if canImport(FoundationModels)
         guard SystemLanguageModel.default.availability == .available else { return }
+        guard session == nil else { return }
 
         let session = LanguageModelSession(instructions: DefaultSystemPrompts.generationPromptBody)
         self.session = session
@@ -101,8 +102,12 @@ final class FoodGenerationService {
         }
         generationTask = task
 
-        // Wait for the generation task to complete
-        await task.value
+        // Bridge parent task cancellation (e.g. SwiftUI .task) to the inner task
+        await withTaskCancellationHandler {
+            await task.value
+        } onCancel: {
+            task.cancel()
+        }
     }
 
     // MARK: - Prompt Building
