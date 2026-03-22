@@ -92,8 +92,10 @@ final class MixViewModel {
 
     func surpriseMe(customCategories: [CustomCategory], customIngredients: [CustomIngredient]) {
         clearSelection()
+        let count = Int.random(in: 3...6)
         let categories = allCategories(customCategories: customCategories)
-        for category in categories {
+        let shuffledCategories = categories.shuffled()
+        for category in shuffledCategories.prefix(count) {
             let available = ingredients(for: category.id, customIngredients: customIngredients)
             if let random = available.randomElement() {
                 selectedIngredients.append(random)

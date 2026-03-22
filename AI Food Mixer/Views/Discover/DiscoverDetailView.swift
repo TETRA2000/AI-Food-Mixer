@@ -57,10 +57,8 @@ struct DiscoverDetailView: View {
                 Divider()
 
                 // Concept preview
-                Text(AttributedString(fullMarkdown: item.conceptPreview))
-                    .font(.body)
+                MarkdownBlocksView(markdown: item.conceptPreview)
                     .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding()
         }
