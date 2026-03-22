@@ -11,6 +11,8 @@ final class FoodGenerationService {
     var streamedText = ""
     var error: String?
 
+    private var generationTask: Task<Void, Never>?
+
     #if canImport(FoundationModels)
     private var session: LanguageModelSession?
     #endif
@@ -31,51 +33,101 @@ final class FoodGenerationService {
         #endif
     }
 
+    // MARK: - Prewarm
+
+    /// Preloads the Foundation Model and caches the prompt prefix to reduce generation latency.
+    /// Call this when the user taps Mix, before presenting the generation screen.
+    func prewarm(ingredients: [IngredientData]) {
+        #if canImport(FoundationModels)
+        guard SystemLanguageModel.default.availability == .available else { return }
+        guard session == nil else { return }
+
+        let session = LanguageModelSession(instructions: DefaultSystemPrompts.generationPromptBody)
+        self.session = session
+
+        let userPrompt = Self.buildUserPrompt(ingredients: ingredients)
+        session.prewarm(promptPrefix: Prompt(userPrompt))
+        #endif
+    }
+
+    // MARK: - Generate
+
     @MainActor
     func generate(ingredients: [IngredientData]) async {
-        let systemPrompt = DefaultSystemPrompts.generationPromptBody
         isGenerating = true
         streamedText = ""
         error = nil
 
-        #if canImport(FoundationModels)
-        guard SystemLanguageModel.default.availability == .available else {
-            error = "Foundation Model is not available on this device. Please use a supported device running iOS 26 or later."
+        // Cancel any previous generation task
+        generationTask?.cancel()
+
+        let task = Task { @MainActor in
+            #if canImport(FoundationModels)
+            guard SystemLanguageModel.default.availability == .available else {
+                error = "Foundation Model is not available on this device. Please use a supported device running iOS 26 or later."
+                isGenerating = false
+                return
+            }
+
+            // Reuse prewarmed session if available, otherwise create a new one
+            let session = self.session ?? LanguageModelSession(instructions: DefaultSystemPrompts.generationPromptBody)
+            self.session = session
+
+            let userPrompt = Self.buildUserPrompt(ingredients: ingredients)
+
+            do {
+                let stream = session.streamResponse(to: userPrompt)
+                for try await partial in stream {
+                    try Task.checkCancellation()
+                    streamedText = partial.content
+                }
+            } catch is CancellationError {
+                // Task was cancelled (e.g. user dismissed the view) — not an error
+                return
+            } catch {
+                self.error = "Generation failed: \(error.localizedDescription)"
+            }
+            #else
+            // Simulator fallback: generate a placeholder food concept
+            do {
+                try await generatePlaceholder(ingredients: ingredients)
+            } catch is CancellationError {
+                return
+            } catch {
+                self.error = "Generation failed: \(error.localizedDescription)"
+            }
+            #endif
+
             isGenerating = false
-            return
         }
+        generationTask = task
 
-        let session = LanguageModelSession(instructions: systemPrompt)
-        self.session = session
+        // Bridge parent task cancellation (e.g. SwiftUI .task) to the inner task
+        await withTaskCancellationHandler {
+            await task.value
+        } onCancel: {
+            task.cancel()
+        }
+    }
 
+    // MARK: - Prompt Building
+
+    private static func buildUserPrompt(ingredients: [IngredientData]) -> String {
         let ingredientList = ingredients
             .map { "- \($0.emoji) \($0.label) (\($0.categoryId))" }
             .joined(separator: "\n")
 
-        let userPrompt = """
+        return """
         Selected ingredients:
         \(ingredientList)
 
         Create a creative food concept that combines these ingredients into one dish.
         """
-
-        do {
-            let stream = session.streamResponse(to: userPrompt)
-            for try await partial in stream {
-                streamedText = partial.content
-            }
-        } catch {
-            self.error = "Generation failed: \(error.localizedDescription)"
-        }
-        #else
-        // Simulator fallback: generate a placeholder food concept
-        await generatePlaceholder(ingredients: ingredients)
-        #endif
-
-        isGenerating = false
     }
 
     func cancel() {
+        generationTask?.cancel()
+        generationTask = nil
         #if canImport(FoundationModels)
         session = nil
         #endif
@@ -85,7 +137,7 @@ final class FoodGenerationService {
     // MARK: - Simulator Placeholder
 
     @MainActor
-    private func generatePlaceholder(ingredients: [IngredientData]) async {
+    private func generatePlaceholder(ingredients: [IngredientData]) async throws {
         let ingredientList = ingredients
             .map { "- \($0.emoji) **\($0.label)**" }
             .joined(separator: "\n")
@@ -139,11 +191,12 @@ final class FoodGenerationService {
         var current = ""
         var i = 0
         while i < characters.count {
+            try Task.checkCancellation()
             let chunkEnd = min(i + 6, characters.count)
             current += String(characters[i..<chunkEnd])
             streamedText = current
             i = chunkEnd
-            try? await Task.sleep(for: .milliseconds(15))
+            try await Task.sleep(for: .milliseconds(15))
         }
     }
 }

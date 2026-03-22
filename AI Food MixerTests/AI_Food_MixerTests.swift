@@ -1213,6 +1213,89 @@ struct AI_Food_MixerTests {
         #expect(service.generatedFoodName == "Spaced Name")
     }
 
+    @Test func foodGenerationServiceCancelStopsGeneration() async {
+        let service = FoodGenerationService()
+        let ingredients = [
+            IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
+            IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
+        ]
+
+        // Start generation in a separate task
+        let generateTask = Task { @MainActor in
+            await service.generate(ingredients: ingredients)
+        }
+
+        // Give it a moment to start, then cancel
+        try? await Task.sleep(for: .milliseconds(50))
+        service.cancel()
+
+        // Wait for the task to finish
+        await generateTask.value
+
+        // After cancellation, isGenerating should be false and no error should be set
+        #expect(!service.isGenerating)
+        #expect(service.error == nil)
+    }
+
+    @Test func foodGenerationServiceCancelViaTaskCancellation() async {
+        let service = FoodGenerationService()
+        let ingredients = [
+            IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
+            IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
+        ]
+
+        // Start generation and cancel the outer task (simulates SwiftUI .task cancellation on dismiss)
+        let generateTask = Task { @MainActor in
+            await service.generate(ingredients: ingredients)
+        }
+
+        // Give it a moment to start, then cancel the task
+        try? await Task.sleep(for: .milliseconds(50))
+        generateTask.cancel()
+
+        // Wait for the task to finish
+        await generateTask.value
+
+        // Cancellation should not set an error and should stop generation early
+        await MainActor.run {
+            #expect(service.error == nil)
+            #expect(!service.isGenerating)
+            // streamedText should be shorter than the full placeholder (cancelled mid-stream)
+            #expect(service.streamedText.count < 500)
+        }
+    }
+
+    @Test func foodGenerationServicePrewarmDoesNotCrash() {
+        let service = FoodGenerationService()
+        let ingredients = [
+            IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
+            IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
+        ]
+
+        // Prewarm should not crash or change observable state
+        service.prewarm(ingredients: ingredients)
+        #expect(!service.isGenerating)
+        #expect(service.streamedText.isEmpty)
+        #expect(service.error == nil)
+    }
+
+    @Test func foodGenerationServicePrewarmThenGenerate() async {
+        let service = FoodGenerationService()
+        let ingredients = [
+            IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
+            IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
+        ]
+
+        // Prewarm, then generate — should reuse the prewarmed session
+        service.prewarm(ingredients: ingredients)
+        await service.generate(ingredients: ingredients)
+
+        #expect(!service.isGenerating)
+        if service.error == nil {
+            #expect(!service.streamedText.isEmpty)
+        }
+    }
+
     // MARK: - HapticService
 
     @Test func hapticServiceMethodsDoNotCrash() {

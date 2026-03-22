@@ -93,6 +93,8 @@ struct GenerationView: View {
                 // Generate image first, then text
                 await generateImage()
 
+                guard !Task.isCancelled else { return }
+
                 await viewModel.mix()
             }
         }
@@ -184,9 +186,13 @@ struct GenerationView: View {
         #if canImport(ImagePlayground)
         isGeneratingImage = true
         imageError = nil
+        defer { isGeneratingImage = false }
 
         do {
+            try Task.checkCancellation()
             let creator = try await ImageCreator()
+
+            try Task.checkCancellation()
 
             // Build concept from selected ingredients (available immediately)
             let ingredientNames = viewModel.selectedIngredients.map(\.label)
@@ -197,6 +203,7 @@ struct GenerationView: View {
 
             let images = creator.images(for: concepts, style: .animation, limit: 1)
             for try await createdImage in images {
+                try Task.checkCancellation()
                 let uiImage = UIImage(cgImage: createdImage.cgImage)
                 withAnimation {
                     generatedImage = uiImage
@@ -204,11 +211,15 @@ struct GenerationView: View {
                 generatedImageData = uiImage.jpegData(compressionQuality: 0.8)
                 break
             }
+        } catch is CancellationError {
+            // User dismissed the view — not an error
+            return
+        } catch let imagePlaygroundError as ImageCreator.Error where imagePlaygroundError == .creationCancelled {
+            // Image generation cancelled — not an error
+            return
         } catch {
             imageError = error.localizedDescription
         }
-
-        isGeneratingImage = false
         #endif
     }
 
