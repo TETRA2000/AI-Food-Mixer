@@ -54,7 +54,7 @@ struct IngredientCard: View {
             )
             .scaleEffect(isSelected ? 1.05 : 1.0)
             .scaleEffect(isPressed ? 0.95 : 1.0)
-            .drawingGroup()
+            .compositingGroup()
             .animation(.spring(duration: 0.3), value: isSelected)
         }
         .buttonStyle(.plain)
