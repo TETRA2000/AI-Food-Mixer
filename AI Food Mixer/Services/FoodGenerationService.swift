@@ -37,7 +37,7 @@ final class FoodGenerationService {
 
     /// Preloads the Foundation Model and caches the prompt prefix to reduce generation latency.
     /// Call this when the user taps Mix, before presenting the generation screen.
-    func prewarm(ingredients: [IngredientData]) {
+    func prewarm() {
         #if canImport(FoundationModels)
         guard SystemLanguageModel.default.availability == .available else { return }
         guard session == nil else { return }
@@ -45,8 +45,7 @@ final class FoodGenerationService {
         let session = LanguageModelSession(instructions: DefaultSystemPrompts.generationPromptBody)
         self.session = session
 
-        let userPrompt = Self.buildUserPrompt(ingredients: ingredients)
-        session.prewarm(promptPrefix: Prompt(userPrompt))
+        session.prewarm(promptPrefix: Prompt(Self.userPromptPrefix))
         #endif
     }
 
@@ -112,17 +111,21 @@ final class FoodGenerationService {
 
     // MARK: - Prompt Building
 
+    /// The static prefix of the user prompt, shared between prewarm and generate.
+    /// Placed first so the Foundation Model can cache and reuse this portion across requests.
+    private static let userPromptPrefix = """
+        Create a creative food concept that combines the following ingredients into one dish.
+
+        Selected ingredients:
+
+        """
+
     private static func buildUserPrompt(ingredients: [IngredientData]) -> String {
         let ingredientList = ingredients
             .map { "- \($0.emoji) \($0.label) (\($0.categoryId))" }
             .joined(separator: "\n")
 
-        return """
-        Selected ingredients:
-        \(ingredientList)
-
-        Create a creative food concept that combines these ingredients into one dish.
-        """
+        return "\(userPromptPrefix)\(ingredientList)"
     }
 
     func cancel() {
