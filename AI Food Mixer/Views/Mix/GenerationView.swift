@@ -107,6 +107,36 @@ struct GenerationView: View {
     private var scrollableContent: some View {
         ScrollView {
             VStack(spacing: 16) {
+                // Ingredient chips
+                if !viewModel.selectedIngredients.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Ingredients")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+
+                        FlowLayout(spacing: 8) {
+                            ForEach(viewModel.selectedIngredients) { ingredient in
+                                HStack(spacing: 4) {
+                                    Text(ingredient.emoji)
+                                        .font(.caption)
+                                    Text(ingredient.label)
+                                        .font(.caption2)
+                                        .fontWeight(.medium)
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(hex: ingredient.colorHex).opacity(0.15))
+                                )
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                }
+
                 // Generated image or progress
                 if let generatedImage {
                     Image(uiImage: generatedImage)
@@ -121,10 +151,8 @@ struct GenerationView: View {
                 }
 
                 // Markdown content
-                Text(AttributedString(fullMarkdown: viewModel.generationService.streamedText))
-                    .font(.body)
+                MarkdownBlocksView(markdown: viewModel.generationService.streamedText)
                     .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
             }
             .padding(.vertical)
