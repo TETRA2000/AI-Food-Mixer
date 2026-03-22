@@ -33,9 +33,26 @@ final class FoodGenerationService {
         #endif
     }
 
+    // MARK: - Prewarm
+
+    /// Preloads the Foundation Model and caches the prompt prefix to reduce generation latency.
+    /// Call this when the user taps Mix, before presenting the generation screen.
+    func prewarm(ingredients: [IngredientData]) {
+        #if canImport(FoundationModels)
+        guard SystemLanguageModel.default.availability == .available else { return }
+
+        let session = LanguageModelSession(instructions: DefaultSystemPrompts.generationPromptBody)
+        self.session = session
+
+        let userPrompt = Self.buildUserPrompt(ingredients: ingredients)
+        session.prewarm(promptPrefix: Prompt(userPrompt))
+        #endif
+    }
+
+    // MARK: - Generate
+
     @MainActor
     func generate(ingredients: [IngredientData]) async {
-        let systemPrompt = DefaultSystemPrompts.generationPromptBody
         isGenerating = true
         streamedText = ""
         error = nil
@@ -51,19 +68,11 @@ final class FoodGenerationService {
                 return
             }
 
-            let session = LanguageModelSession(instructions: systemPrompt)
+            // Reuse prewarmed session if available, otherwise create a new one
+            let session = self.session ?? LanguageModelSession(instructions: DefaultSystemPrompts.generationPromptBody)
             self.session = session
 
-            let ingredientList = ingredients
-                .map { "- \($0.emoji) \($0.label) (\($0.categoryId))" }
-                .joined(separator: "\n")
-
-            let userPrompt = """
-            Selected ingredients:
-            \(ingredientList)
-
-            Create a creative food concept that combines these ingredients into one dish.
-            """
+            let userPrompt = Self.buildUserPrompt(ingredients: ingredients)
 
             do {
                 let stream = session.streamResponse(to: userPrompt)
@@ -94,6 +103,21 @@ final class FoodGenerationService {
 
         // Wait for the generation task to complete
         await task.value
+    }
+
+    // MARK: - Prompt Building
+
+    private static func buildUserPrompt(ingredients: [IngredientData]) -> String {
+        let ingredientList = ingredients
+            .map { "- \($0.emoji) \($0.label) (\($0.categoryId))" }
+            .joined(separator: "\n")
+
+        return """
+        Selected ingredients:
+        \(ingredientList)
+
+        Create a creative food concept that combines these ingredients into one dish.
+        """
     }
 
     func cancel() {

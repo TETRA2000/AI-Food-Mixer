@@ -37,6 +37,7 @@ struct MixView: View {
                     )
 
                     MixButton(count: viewModel.selectedCount) {
+                        viewModel.generationService.prewarm(ingredients: viewModel.selectedIngredients)
                         viewModel.isShowingGeneration = true
                     }
                     .padding(.bottom, 8)
