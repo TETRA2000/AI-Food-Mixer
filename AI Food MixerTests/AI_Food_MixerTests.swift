@@ -1181,6 +1181,38 @@ struct AI_Food_MixerTests {
         }
     }
 
+    // MARK: - generatedFoodName
+
+    @Test func generatedFoodNameExtractsFromHeading() {
+        let service = FoodGenerationService()
+        service.streamedText = "# Apple Banana Fusion\n\n## Concept\nA bold dish."
+        #expect(service.generatedFoodName == "Apple Banana Fusion")
+    }
+
+    @Test func generatedFoodNameReturnsNilWhenEmpty() {
+        let service = FoodGenerationService()
+        service.streamedText = ""
+        #expect(service.generatedFoodName == nil)
+    }
+
+    @Test func generatedFoodNameReturnsNilWithNoHeading() {
+        let service = FoodGenerationService()
+        service.streamedText = "No heading here\nJust some text"
+        #expect(service.generatedFoodName == nil)
+    }
+
+    @Test func generatedFoodNameIgnoresSubheadings() {
+        let service = FoodGenerationService()
+        service.streamedText = "Some intro\n## Not This\n# Actual Name"
+        #expect(service.generatedFoodName == "Actual Name")
+    }
+
+    @Test func generatedFoodNameTrimsWhitespace() {
+        let service = FoodGenerationService()
+        service.streamedText = "#   Spaced Name   \n\nMore text"
+        #expect(service.generatedFoodName == "Spaced Name")
+    }
+
     // MARK: - HapticService
 
     @Test func hapticServiceMethodsDoNotCrash() {

@@ -15,6 +15,14 @@ final class FoodGenerationService {
     private var session: LanguageModelSession?
     #endif
 
+    /// Extracts the food name from the first `# Heading` in the generated markdown.
+    var generatedFoodName: String? {
+        guard let line = streamedText.components(separatedBy: .newlines)
+            .first(where: { $0.hasPrefix("# ") }) else { return nil }
+        let name = line.dropFirst(2).trimmingCharacters(in: .whitespaces)
+        return name.isEmpty ? nil : name
+    }
+
     var isAvailable: Bool {
         #if canImport(FoundationModels)
         SystemLanguageModel.default.availability == .available
