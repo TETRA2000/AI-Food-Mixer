@@ -51,6 +51,7 @@ struct GenerationView: View {
                         }
 
                         Button {
+                            viewModel.projectTitle = viewModel.generationService.generatedFoodName ?? ""
                             showSaveConfirmation = true
                         } label: {
                             Image(systemName: "square.and.arrow.down")
