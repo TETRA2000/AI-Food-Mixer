@@ -4,6 +4,8 @@ AI Food Mixer is an iOS app that transforms food creativity into a tap-driven mi
 
 **Invent impossible food mashups without ever opening the keyboard.**
 
+[![Download on TestFlight](https://img.shields.io/badge/Download-TestFlight-blue?logo=apple)](https://testflight.apple.com/join/qXtXZPVz)
+
 ## Screenshots
 
 <p align="center">
