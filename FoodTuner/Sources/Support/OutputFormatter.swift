@@ -43,19 +43,16 @@ enum OutputFormatter {
 
     // MARK: - Prompts
 
-    static func formatPrompts(_ prompts: [(purpose: PromptPurpose, body: String)], json: Bool) -> String {
+    static func formatPrompts(body: String, json: Bool) -> String {
         if json {
-            let items = prompts.map { PromptOutput(purpose: $0.purpose.rawValue, name: $0.purpose.displayName, body: $0.body) }
-            return encodeCodableJSON(PromptsOutput(prompts: items))
+            let item = PromptOutput(purpose: "generation", name: "Food Concept Generation", body: body)
+            return encodeCodableJSON(PromptsOutput(prompts: [item]))
         }
 
-        var lines: [String] = []
-        for (purpose, body) in prompts {
-            lines.append("=== \(purpose.displayName) ===")
-            lines.append(body)
-            lines.append("")
-        }
-        return lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        return """
+        === Food Concept Generation ===
+        \(body)
+        """
     }
 
     // MARK: - Build Prompt
@@ -64,14 +61,13 @@ enum OutputFormatter {
         systemPrompt: String,
         userPrompt: String,
         ingredients: [IngredientData],
-        purpose: PromptPurpose,
         systemPromptSource: String,
         json: Bool
     ) -> String {
         if json {
             let metadata = BuildMetadata(
                 ingredientCount: ingredients.count,
-                purpose: purpose.rawValue,
+                purpose: "generation",
                 systemPromptSource: systemPromptSource,
                 ingredientIds: ingredients.map(\.id)
             )
@@ -93,7 +89,7 @@ enum OutputFormatter {
 
         === METADATA ===
         Ingredients: \(ingredients.count)
-        Purpose: \(purpose.rawValue)
+        Purpose: generation
         System prompt source: \(systemPromptSource)
         IDs: \(ingredients.map(\.id).joined(separator: ", "))
         """

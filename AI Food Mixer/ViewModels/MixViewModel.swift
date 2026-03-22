@@ -52,11 +52,11 @@ final class MixViewModel {
 
     // MARK: - Generation
 
-    func mix(systemPrompt: String) async {
+    func mix() async {
         HapticService.mixStart()
         await generationService.generate(
             ingredients: selectedIngredients,
-            systemPrompt: systemPrompt
+            systemPrompt: DefaultSystemPrompts.generationPromptBody
         )
         if generationService.error == nil {
             HapticService.mixComplete()

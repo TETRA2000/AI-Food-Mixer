@@ -33,8 +33,6 @@ let package = Package(
             sources: [
                 "AI Food Mixer/Models/Ingredient.swift",
                 "AI Food Mixer/Models/IngredientCategory.swift",
-                "AI Food Mixer/Models/PromptPurpose.swift",
-                "AI Food Mixer/Models/SystemPrompt.swift",
                 "AI Food Mixer/Data/DefaultCategories.swift",
                 "AI Food Mixer/Data/DefaultIngredients.swift",
                 "AI Food Mixer/Data/DefaultSystemPrompts.swift",

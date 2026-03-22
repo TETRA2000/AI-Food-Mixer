@@ -48,7 +48,7 @@ final class MixViewModel {
 The app uses a dual-type strategy:
 
 - **Value types** (`IngredientData`, `CategoryData`) — used in-memory for UI rendering, passed around freely, stored as JSON inside `Project`.
-- **SwiftData models** (`CustomIngredient`, `CustomCategory`, `Project`, `SystemPrompt`) — persisted to disk, queried via `@Query`.
+- **SwiftData models** (`CustomIngredient`, `CustomCategory`, `Project`) — persisted to disk, queried via `@Query`.
 
 This avoids coupling the UI to the persistence layer while keeping serialization simple.
 

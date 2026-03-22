@@ -16,7 +16,7 @@ AI Food Mixer is a native iOS app that transforms food creativity into a tap-dri
 
 ## Project Structure
 
-- `AI Food Mixer/Models/` — Data types (`IngredientData`, `CategoryData`) and SwiftData models (`Project`, `CustomIngredient`, `CustomCategory`, `SystemPrompt`)
+- `AI Food Mixer/Models/` — Data types (`IngredientData`, `CategoryData`) and SwiftData models (`Project`, `CustomIngredient`, `CustomCategory`)
 - `AI Food Mixer/Data/` — Static default content (10 categories, ~120 food emoji ingredients, generation prompt, 5 discover items)
 - `AI Food Mixer/Services/` — Business logic (`FoodGenerationService`, `ExportService`, `HapticService`)
 - `AI Food Mixer/ViewModels/` — UI state management (`MixViewModel`, `ProjectsViewModel`, `DiscoverViewModel`, `SettingsViewModel`)
@@ -47,7 +47,7 @@ Foundation Model and Image Playground features require an Apple Silicon device. 
 
 - **Value types for defaults** — Built-in ingredients/categories are static `[IngredientData]`/`[CategoryData]` arrays, NOT SwiftData models. This avoids schema migration issues.
 - **JSON blob storage** — `Project.ingredientsData` stores ingredients as encoded JSON `Data`, making projects self-contained.
-- **Single PromptPurpose** — Only `.generation` exists (no `.suggestion` or `.reverse`).
+- **Static system prompt** — The generation prompt lives in `DefaultSystemPrompts.generationPromptBody` as a plain string constant.
 - **Simulator fallback** — `FoodGenerationService` uses `#if canImport(FoundationModels)` to provide placeholder content on simulator.
 - **Image generation** — `GenerationView` uses `#if canImport(ImagePlayground)` to generate food concept images on-device.
 

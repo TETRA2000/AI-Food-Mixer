@@ -88,8 +88,7 @@ Full-screen modal (`fullScreenCover`) displaying streaming Markdown output:
 
 ## Settings Tab
 
-- Grouped `List` with three sections:
-  - **AI Configuration**: System Prompts editor
+- Grouped `List` with two sections:
   - **Customisation**: Ingredient & Category manager
   - **About**: Version and platform info
 

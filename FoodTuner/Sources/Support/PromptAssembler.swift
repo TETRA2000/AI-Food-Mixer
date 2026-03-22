@@ -17,11 +17,9 @@ enum PromptAssembler {
         """
     }
 
-    /// Return the default system prompt body for a given purpose.
-    static func systemPrompt(for purpose: PromptPurpose) -> String {
-        switch purpose {
-        case .generation: DefaultSystemPrompts.generationPromptBody
-        }
+    /// Return the default system prompt body.
+    static func systemPrompt() -> String {
+        DefaultSystemPrompts.generationPromptBody
     }
 
     /// Resolve ingredient IDs to IngredientData, splitting into valid and invalid.

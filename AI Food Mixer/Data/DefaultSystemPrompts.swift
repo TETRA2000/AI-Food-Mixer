@@ -46,15 +46,4 @@ enum DefaultSystemPrompts {
     - Do NOT add any sections beyond those listed.
     """
 
-    static func makeDefault(purpose: PromptPurpose) -> SystemPrompt {
-        switch purpose {
-        case .generation:
-            SystemPrompt(
-                name: "Creative Food Concept",
-                body: generationPromptBody,
-                purpose: .generation,
-                isDefault: true
-            )
-        }
-    }
 }

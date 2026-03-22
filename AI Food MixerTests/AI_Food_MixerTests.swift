@@ -381,38 +381,6 @@ struct AI_Food_MixerTests {
         #expect(cat.categoryId == "my_cat_id")
     }
 
-    // MARK: - PromptPurpose
-
-    @Test func promptPurposeOnlyHasGeneration() {
-        #expect(PromptPurpose.allCases.count == 1)
-        #expect(PromptPurpose.allCases.first == .generation)
-    }
-
-    @Test func promptPurposeDisplayName() {
-        #expect(PromptPurpose.generation.displayName == "Food Concept Generation")
-    }
-
-    @Test func promptPurposeRawValue() {
-        #expect(PromptPurpose.generation.rawValue == "generation")
-    }
-
-    @Test func promptPurposeIdentifiable() {
-        #expect(PromptPurpose.generation.id == "generation")
-        #expect(PromptPurpose.generation.id == PromptPurpose.generation.rawValue)
-    }
-
-    @Test func promptPurposeCodable() throws {
-        let encoded = try JSONEncoder().encode(PromptPurpose.generation)
-        let decoded = try JSONDecoder().decode(PromptPurpose.self, from: encoded)
-        #expect(decoded == .generation)
-    }
-
-    @Test func promptPurposeFromRawValue() {
-        #expect(PromptPurpose(rawValue: "generation") == .generation)
-        #expect(PromptPurpose(rawValue: "unknown") == nil)
-        #expect(PromptPurpose(rawValue: "") == nil)
-    }
-
     // MARK: - DefaultSystemPrompts
 
     @Test func systemPromptIsNonEmpty() {
@@ -437,15 +405,6 @@ struct AI_Food_MixerTests {
         let prompt = DefaultSystemPrompts.generationPromptBody
         #expect(prompt.contains("#"))
         #expect(prompt.contains("Markdown"))
-    }
-
-    @Test func makeDefaultGenerationPrompt() {
-        let prompt = DefaultSystemPrompts.makeDefault(purpose: .generation)
-        #expect(prompt.name == "Creative Food Concept")
-        #expect(prompt.body == DefaultSystemPrompts.generationPromptBody)
-        #expect(prompt.purpose == .generation)
-        #expect(prompt.isDefault == true)
-        #expect(prompt.purposeRaw == "generation")
     }
 
     // MARK: - DefaultDiscoverItems
@@ -928,60 +887,6 @@ struct AI_Food_MixerTests {
         #expect(type(of: vm) == SettingsViewModel.self)
     }
 
-    @Test func resetDefaultPromptsRestoresDefaults() throws {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: SystemPrompt.self, configurations: config)
-        let context = ModelContext(container)
-
-        let vm = SettingsViewModel()
-
-        // Seed defaults
-        vm.seedDefaultPrompts(modelContext: context)
-        let descriptor = FetchDescriptor<SystemPrompt>(
-            predicate: #Predicate { $0.isDefault == true }
-        )
-        let seeded = try context.fetch(descriptor)
-        #expect(seeded.count == PromptPurpose.allCases.count)
-
-        // Modify a default prompt
-        seeded.first?.body = "Modified body"
-        try context.save()
-
-        // Reset defaults
-        vm.resetDefaultPrompts(modelContext: context)
-
-        let restored = try context.fetch(descriptor)
-        #expect(restored.count == PromptPurpose.allCases.count)
-        for prompt in restored {
-            let expected = DefaultSystemPrompts.makeDefault(purpose: prompt.purpose)
-            #expect(prompt.body == expected.body)
-            #expect(prompt.name == expected.name)
-        }
-    }
-
-    @Test func resetDefaultPromptsPreservesCustomPrompts() throws {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: SystemPrompt.self, configurations: config)
-        let context = ModelContext(container)
-
-        let vm = SettingsViewModel()
-        vm.seedDefaultPrompts(modelContext: context)
-
-        // Add a custom prompt
-        let custom = SystemPrompt(name: "Custom", body: "Custom body", purpose: .generation)
-        context.insert(custom)
-        try context.save()
-
-        // Reset defaults
-        vm.resetDefaultPrompts(modelContext: context)
-
-        let allPrompts = try context.fetch(FetchDescriptor<SystemPrompt>())
-        let customPrompts = allPrompts.filter { !$0.isDefault }
-        #expect(customPrompts.count == 1)
-        #expect(customPrompts.first?.name == "Custom")
-        #expect(customPrompts.first?.body == "Custom body")
-    }
-
     // MARK: - Project Model
 
     @Test func projectInitialization() {
@@ -1370,72 +1275,6 @@ struct AI_Food_MixerTests {
             let gradient = ingredient.cardGradient
             #expect(type(of: gradient) == LinearGradient.self)
         }
-    }
-
-    // MARK: - SystemPrompt Model
-
-    @Test func systemPromptPurposeConversion() {
-        let prompt = SystemPrompt(
-            name: "Test",
-            body: "Body",
-            purpose: .generation,
-            isDefault: true
-        )
-        #expect(prompt.purpose == .generation)
-        #expect(prompt.purposeRaw == "generation")
-        #expect(prompt.isDefault == true)
-    }
-
-    @Test func systemPromptDefaultIsDefaultFalse() {
-        let prompt = SystemPrompt(
-            name: "Test",
-            body: "Body",
-            purpose: .generation
-        )
-        #expect(prompt.isDefault == false)
-    }
-
-    @Test func systemPromptPurposeSetter() {
-        let prompt = SystemPrompt(
-            name: "Test",
-            body: "Body",
-            purpose: .generation
-        )
-        #expect(prompt.purposeRaw == "generation")
-        // Setting purpose again (only one case exists, but verify the setter works)
-        prompt.purpose = .generation
-        #expect(prompt.purposeRaw == "generation")
-    }
-
-    @Test func systemPromptInvalidPurposeRawFallsBack() {
-        let prompt = SystemPrompt(
-            name: "Test",
-            body: "Body",
-            purpose: .generation
-        )
-        // Manually set an invalid purposeRaw
-        prompt.purposeRaw = "nonexistent_purpose"
-        // Getter should fall back to .generation
-        #expect(prompt.purpose == .generation)
-    }
-
-    @Test func systemPromptUniqueIds() {
-        let prompt1 = SystemPrompt(name: "A", body: "Body A", purpose: .generation)
-        let prompt2 = SystemPrompt(name: "B", body: "Body B", purpose: .generation)
-        #expect(prompt1.promptId != prompt2.promptId)
-    }
-
-    @Test func systemPromptStoresAllFields() {
-        let prompt = SystemPrompt(
-            name: "My Prompt",
-            body: "My Body Text",
-            purpose: .generation,
-            isDefault: true
-        )
-        #expect(prompt.name == "My Prompt")
-        #expect(prompt.body == "My Body Text")
-        #expect(prompt.purpose == .generation)
-        #expect(prompt.isDefault == true)
     }
 
     // MARK: - AttributedString+Markdown

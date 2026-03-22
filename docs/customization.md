@@ -41,20 +41,9 @@ Users can create entirely new ingredient categories.
 
 Custom categories receive a `sortOrder` one higher than the current maximum, appearing at the bottom of the Mix tab. Deleting a custom category also removes all its custom ingredients.
 
-## System Prompt Customization
+## System Prompt
 
-The system prompt controls how the Foundation Model generates food concepts.
-
-### Editing the System Prompt
-
-1. Navigate to Settings > System Prompts
-2. Select the "Food Concept Generation" prompt
-3. Edit the prompt body
-4. Changes take effect on the next generation
-
-### Prompt Structure
-
-The default prompt instructs the model to produce:
+The system prompt that controls food concept generation is defined in `DefaultSystemPrompts.swift`. It instructs the Foundation Model to produce:
 
 - A creative dish name (as a Markdown heading)
 - A concept description
@@ -63,20 +52,7 @@ The default prompt instructs the model to produce:
 - Serving suggestion
 - Drink/side pairings
 
-### Resetting System Prompts to Defaults
-
-1. Navigate to Settings > System Prompts
-2. Tap the reset button (arrow icon) in the toolbar
-3. Confirm the reset in the dialog
-
-This restores all default system prompts to their original content. Custom prompts are not affected.
-
-### Tips for Prompt Tuning
-
-- Be specific about output format (Markdown headings, bullet points)
-- Include examples of the tone you want (playful, technical, poetic)
-- Mention dietary considerations if needed
-- Use the FoodTuner CLI for rapid iteration without rebuilding the app
+To customize the prompt, edit `DefaultSystemPrompts.generationPromptBody` directly, or use the FoodTuner CLI's `--system-prompt-file` option to override it at generation time.
 
 ## FoodTuner CLI
 
