@@ -26,18 +26,18 @@ final class AppStoreScreenshots: XCTestCase {
 
     // MARK: - Helpers
 
-    /// Selects a tab by label, handling both iPhone tab bar and iPad sidebar.
+    /// Selects a tab by label, handling both iPhone tab bar and iPad floating tab bar.
+    /// On iPad, the floating tab bar nests duplicate Button elements, so `.firstMatch` is required.
     private func selectTab(_ label: String) {
-        // iPhone uses a standard tab bar
         let tabBarButton = app.tabBars.buttons[label]
         if tabBarButton.exists {
             tabBarButton.tap()
             return
         }
-        // iPad with sidebar: tap the button in the sidebar
-        let sidebarButton = app.buttons[label]
-        if sidebarButton.waitForExistence(timeout: 3) {
-            sidebarButton.tap()
+        // iPad floating tab bar: use firstMatch to avoid multiple-match failure
+        let button = app.buttons[label].firstMatch
+        if button.waitForExistence(timeout: 3) {
+            button.tap()
         }
     }
 
