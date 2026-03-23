@@ -14,36 +14,54 @@ final class AI_Food_MixerUITests: XCTestCase {
         app = nil
     }
 
+    // MARK: - Helpers
+
+    /// Selects a tab by label, handling both iPhone tab bar and iPad sidebar.
+    private func selectTab(_ label: String) {
+        let tabBarButton = app.tabBars.buttons[label]
+        if tabBarButton.exists {
+            tabBarButton.tap()
+            return
+        }
+        let sidebarButton = app.buttons[label]
+        if sidebarButton.waitForExistence(timeout: 3) {
+            sidebarButton.tap()
+        }
+    }
+
     // MARK: - Tab Navigation
 
     @MainActor
     func testTabBarExists() throws {
-        XCTAssertTrue(app.tabBars.firstMatch.exists)
+        // On iPhone: tab bar; on iPad: sidebar or tab bar
+        let hasTabBar = app.tabBars.firstMatch.exists
+        let hasSidebar = app.buttons["Mix"].waitForExistence(timeout: 3)
+        XCTAssertTrue(hasTabBar || hasSidebar)
     }
 
     @MainActor
     func testNavigateToCreationsTab() throws {
-        app.tabBars.buttons["Creations"].tap()
+        selectTab("Creations")
         XCTAssertTrue(app.navigationBars["Creations"].waitForExistence(timeout: 5))
     }
 
     @MainActor
     func testNavigateToDiscoverTab() throws {
-        app.tabBars.buttons["Discover"].tap()
+        selectTab("Discover")
         XCTAssertTrue(app.navigationBars["Discover"].waitForExistence(timeout: 5))
     }
 
     @MainActor
     func testNavigateToSettingsTab() throws {
-        app.tabBars.buttons["Settings"].tap()
+        selectTab("Settings")
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
     }
 
     @MainActor
     func testNavigateToMixTab() throws {
         // Go to another tab first, then back
-        app.tabBars.buttons["Settings"].tap()
-        app.tabBars.buttons["Mix"].tap()
+        selectTab("Settings")
+        selectTab("Mix")
         XCTAssertTrue(app.navigationBars["AI Food Mixer"].waitForExistence(timeout: 5))
     }
 
@@ -79,7 +97,7 @@ final class AI_Food_MixerUITests: XCTestCase {
 
     @MainActor
     func testCreationsEmptyState() throws {
-        app.tabBars.buttons["Creations"].tap()
+        selectTab("Creations")
         // Should show empty state initially
         XCTAssertTrue(app.staticTexts["No Creations Yet"].waitForExistence(timeout: 5))
     }
@@ -88,14 +106,14 @@ final class AI_Food_MixerUITests: XCTestCase {
 
     @MainActor
     func testDiscoverTabShowsItems() throws {
-        app.tabBars.buttons["Discover"].tap()
+        selectTab("Discover")
         // Should show at least one discover item
         XCTAssertTrue(app.staticTexts["Curry Lava Pizza Cake"].waitForExistence(timeout: 5))
     }
 
     @MainActor
     func testDiscoverItemNavigation() throws {
-        app.tabBars.buttons["Discover"].tap()
+        selectTab("Discover")
         let card = app.staticTexts["Curry Lava Pizza Cake"]
         XCTAssertTrue(card.waitForExistence(timeout: 5))
         card.tap()
@@ -107,7 +125,7 @@ final class AI_Food_MixerUITests: XCTestCase {
 
     @MainActor
     func testSettingsTabShowsSections() throws {
-        app.tabBars.buttons["Settings"].tap()
+        selectTab("Settings")
         XCTAssertTrue(app.staticTexts["AI Configuration"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Customisation"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["About"].waitForExistence(timeout: 5))
@@ -115,7 +133,7 @@ final class AI_Food_MixerUITests: XCTestCase {
 
     @MainActor
     func testSettingsShowsVersion() throws {
-        app.tabBars.buttons["Settings"].tap()
+        selectTab("Settings")
         XCTAssertTrue(app.staticTexts["Version"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["1.0"].waitForExistence(timeout: 5))
     }
