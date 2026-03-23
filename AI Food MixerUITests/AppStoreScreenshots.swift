@@ -8,6 +8,7 @@
 
 import XCTest
 
+@MainActor
 final class AppStoreScreenshots: XCTestCase {
 
     var app: XCUIApplication!
@@ -27,7 +28,6 @@ final class AppStoreScreenshots: XCTestCase {
 
     /// Captures all App Store screenshots in a single ordered test.
     /// Using a single test ensures consistent state progression.
-    @MainActor
     func testCaptureAppStoreScreenshots() throws {
 
         // Screenshot 1: Mix Tab — the main ingredient selection screen
