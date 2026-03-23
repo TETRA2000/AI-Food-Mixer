@@ -24,6 +24,23 @@ final class AppStoreScreenshots: XCTestCase {
         app = nil
     }
 
+    // MARK: - Helpers
+
+    /// Selects a tab by label, handling both iPhone tab bar and iPad sidebar.
+    private func selectTab(_ label: String) {
+        // iPhone uses a standard tab bar
+        let tabBarButton = app.tabBars.buttons[label]
+        if tabBarButton.exists {
+            tabBarButton.tap()
+            return
+        }
+        // iPad with sidebar: tap the button in the sidebar
+        let sidebarButton = app.buttons[label]
+        if sidebarButton.waitForExistence(timeout: 3) {
+            sidebarButton.tap()
+        }
+    }
+
     // MARK: - App Store Screenshots
 
     /// Captures all App Store screenshots in a single ordered test.
@@ -42,7 +59,7 @@ final class AppStoreScreenshots: XCTestCase {
         snapshot("02_MixingBowl")
 
         // Screenshot 3: Discover Tab — curated food concepts
-        app.tabBars.buttons["Discover"].tap()
+        selectTab("Discover")
         XCTAssertTrue(app.navigationBars["Discover"].waitForExistence(timeout: 5))
         snapshot("03_Discover")
 
@@ -57,12 +74,12 @@ final class AppStoreScreenshots: XCTestCase {
         app.navigationBars.buttons.firstMatch.tap()
 
         // Screenshot 5: Creations Tab — saved projects
-        app.tabBars.buttons["Creations"].tap()
+        selectTab("Creations")
         XCTAssertTrue(app.navigationBars["Creations"].waitForExistence(timeout: 5))
         snapshot("05_Creations")
 
         // Screenshot 6: Settings Tab
-        app.tabBars.buttons["Settings"].tap()
+        selectTab("Settings")
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         snapshot("06_Settings")
     }
