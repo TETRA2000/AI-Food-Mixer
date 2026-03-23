@@ -3,9 +3,9 @@
 
 # Devices to capture (App Store requires 6.7", 6.1", and optionally iPad)
 devices([
-  "iPhone 16 Pro Max",   # 6.7" — required
-  "iPhone 16 Pro",       # 6.3"
-  "iPad Pro 13-inch (M4)" # iPad — required if supporting iPad
+  "iPhone 17 Pro Max",    # 6.9" — required for 6.7" class
+  "iPhone 17 Pro",        # 6.3"
+  "iPad Pro 13-inch (M5)" # iPad — required if supporting iPad
 ])
 
 # Languages / locales
