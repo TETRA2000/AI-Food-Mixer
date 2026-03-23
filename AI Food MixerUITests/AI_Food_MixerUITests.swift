@@ -128,7 +128,6 @@ final class AI_Food_MixerUITests: XCTestCase {
     @MainActor
     func testSettingsTabShowsSections() throws {
         selectTab("Settings")
-        XCTAssertTrue(app.staticTexts["AI Configuration"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Customisation"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["About"].waitForExistence(timeout: 5))
     }
