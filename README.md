@@ -83,6 +83,20 @@ swift run food-tuner add-ingredient --id spices_paprika --label Paprika --emoji 
 
 All commands support `--json` for machine-readable output. Run `swift run food-tuner --help` for full usage.
 
+## App Store Screenshots
+
+Automated via [fastlane snapshot](https://docs.fastlane.tools/actions/snapshot/).
+
+```bash
+# Install fastlane (one-time)
+bundle install
+
+# Generate screenshots for all configured devices and languages
+bundle exec fastlane snapshot
+```
+
+Screenshots are saved to `fastlane/screenshots/`. Configuration is in `fastlane/Snapfile`, and the UI test driving the captures is `AI Food MixerUITests/AppStoreScreenshots.swift`.
+
 ## License
 
 All rights reserved.
