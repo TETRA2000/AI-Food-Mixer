@@ -1136,7 +1136,7 @@ struct AI_Food_MixerTests {
 
     @Test func foodGenerationServiceGenerateEmptyIngredients() async {
         let service = FoodGenerationService()
-        await service.generate(ingredients: [], systemPrompt: "test")
+        await service.generate(ingredients: [])
 
         #expect(!service.isGenerating)
         // Either produced output or set an error
