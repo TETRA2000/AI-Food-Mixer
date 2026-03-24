@@ -18,6 +18,9 @@ final class AppStoreScreenshots: XCTestCase {
         app = XCUIApplication()
         setupSnapshot(app)
         app.launch()
+
+        // Force portrait orientation for App Store screenshots
+        XCUIDevice.shared.orientation = .portrait
     }
 
     override func tearDownWithError() throws {
@@ -58,25 +61,40 @@ final class AppStoreScreenshots: XCTestCase {
         XCTAssertTrue(app.staticTexts["Mixing Bowl"].waitForExistence(timeout: 5))
         snapshot("02_MixingBowl")
 
-        // Screenshot 3: Discover Tab — curated food concepts
+        // Screenshot 3: Generation Result — tap Mix button and wait for generation
+        // The accessibility label is "Mix N ingredients" (lowercase)
+        let mixButton = app.buttons.matching(NSPredicate(format: "label MATCHES 'Mix [0-9]+ ingredients'")).firstMatch
+        XCTAssertTrue(mixButton.waitForExistence(timeout: 5), "Mix button not found")
+        if !mixButton.isHittable {
+            app.swipeUp()
+            sleep(1)
+        }
+        mixButton.tap()
+
+        // Wait for the generation modal to appear
+        let foodConceptNav = app.navigationBars["Food Concept"]
+        XCTAssertTrue(foodConceptNav.waitForExistence(timeout: 15), "Food Concept nav bar not found")
+        // Wait for placeholder streaming to complete (~3s), plus buffer
+        sleep(8)
+        snapshot("03_GenerationResult")
+
+        // Dismiss the generation modal
+        app.buttons["Close"].tap()
+
+        // Screenshot 4: Discover Tab — curated food concepts
         selectTab("Discover")
         XCTAssertTrue(app.navigationBars["Discover"].waitForExistence(timeout: 5))
-        snapshot("03_Discover")
+        snapshot("04_Discover")
 
-        // Screenshot 4: Discover Detail — a featured food concept
+        // Screenshot 5: Discover Detail — a featured food concept
         let discoverCard = app.staticTexts["Curry Lava Pizza Cake"]
         XCTAssertTrue(discoverCard.waitForExistence(timeout: 5))
         discoverCard.tap()
         XCTAssertTrue(app.staticTexts["Ingredients"].waitForExistence(timeout: 5))
-        snapshot("04_DiscoverDetail")
+        snapshot("05_DiscoverDetail")
 
         // Navigate back to Discover
         app.navigationBars.buttons.firstMatch.tap()
-
-        // Screenshot 5: Creations Tab — saved projects
-        selectTab("Creations")
-        XCTAssertTrue(app.navigationBars["Creations"].waitForExistence(timeout: 5))
-        snapshot("05_Creations")
 
         // Screenshot 6: Settings Tab
         selectTab("Settings")
