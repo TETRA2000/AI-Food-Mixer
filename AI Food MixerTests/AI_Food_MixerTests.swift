@@ -1083,6 +1083,28 @@ struct AI_Food_MixerTests {
         #expect(service.error == nil)
     }
 
+    @Test func foodGenerationServiceUnavailabilityMessage() {
+        let service = FoodGenerationService()
+        if service.isAvailable {
+            // On a device with Apple Intelligence, message should be nil
+            #expect(service.unavailabilityMessage == nil)
+        } else {
+            // On simulator or unsupported device, message should be non-nil and non-empty
+            #expect(service.unavailabilityMessage != nil)
+            #expect(!service.unavailabilityMessage!.isEmpty)
+        }
+    }
+
+    @Test func foodGenerationServiceUnavailabilityMessageConsistentWithIsAvailable() {
+        let service = FoodGenerationService()
+        // isAvailable and unavailabilityMessage should be logically consistent
+        if service.isAvailable {
+            #expect(service.unavailabilityMessage == nil)
+        } else {
+            #expect(service.unavailabilityMessage != nil)
+        }
+    }
+
     @Test func foodGenerationServiceCancel() {
         let service = FoodGenerationService()
         service.cancel()

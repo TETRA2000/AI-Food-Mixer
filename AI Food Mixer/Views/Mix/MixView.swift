@@ -12,6 +12,10 @@ struct MixView: View {
                 // Ingredient browsing
                 ScrollView {
                     LazyVStack(spacing: 24) {
+                        if !viewModel.generationService.isAvailable {
+                            appleIntelligenceBanner
+                        }
+
                         ForEach(viewModel.allCategories(customCategories: customCategories)) { category in
                             CategoryRow(
                                 category: category,
@@ -60,6 +64,26 @@ struct MixView: View {
                 GenerationView(viewModel: viewModel)
             }
         }
+    }
+
+    // MARK: - Apple Intelligence Banner
+
+    private var appleIntelligenceBanner: some View {
+        VStack(spacing: 8) {
+            Label("Apple Intelligence Required", systemImage: "apple.intelligence")
+                .font(.headline)
+            Text(viewModel.generationService.unavailabilityMessage ?? "Apple Intelligence is required to generate food concepts.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.ultraThinMaterial)
+        )
+        .padding(.horizontal)
     }
 }
 
