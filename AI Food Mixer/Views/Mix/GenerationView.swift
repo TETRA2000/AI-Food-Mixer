@@ -21,7 +21,7 @@ struct GenerationView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if isGeneratingImage || viewModel.generationService.isGenerating || (hasStartedGeneration && generatedImage == nil) {
+                if viewModel.generationService.error == nil, isGeneratingImage || viewModel.generationService.isGenerating || (hasStartedGeneration && generatedImage == nil) {
                     generatingHeader
                 }
 
