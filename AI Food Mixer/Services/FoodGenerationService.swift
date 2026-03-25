@@ -33,6 +33,32 @@ final class FoodGenerationService {
         #endif
     }
 
+    /// Returns a user-friendly message explaining why Apple Intelligence is not available,
+    /// or `nil` if it is available.
+    var unavailabilityMessage: String? {
+        #if canImport(FoundationModels)
+        switch SystemLanguageModel.default.availability {
+        case .available:
+            return nil
+        case .unavailable(let reason):
+            switch reason {
+            case .deviceNotEligible:
+                return "This device does not support Apple Intelligence. An iPhone 15 Pro or later, or an iPad or Mac with an M1 chip or later, is required."
+            case .appleIntelligenceNotEnabled:
+                return "Apple Intelligence is not enabled. Please enable it in Settings > Apple Intelligence & Siri to use this app's features."
+            case .modelNotReady:
+                return "Apple Intelligence is still setting up. Please wait for the download to complete in Settings > Apple Intelligence & Siri, then try again."
+            @unknown default:
+                return "Apple Intelligence is currently unavailable on this device. Please check Settings > Apple Intelligence & Siri."
+            }
+        @unknown default:
+            return "Apple Intelligence is currently unavailable on this device. Please check Settings > Apple Intelligence & Siri."
+        }
+        #else
+        return "Apple Intelligence is not available in the simulator."
+        #endif
+    }
+
     // MARK: - Prewarm
 
     /// Preloads the Foundation Model and caches the prompt prefix to reduce generation latency.
@@ -63,7 +89,7 @@ final class FoodGenerationService {
         let task = Task { @MainActor in
             #if canImport(FoundationModels)
             guard SystemLanguageModel.default.availability == .available else {
-                error = "Foundation Model is not available on this device. Please use a supported device running iOS 26 or later."
+                error = unavailabilityMessage ?? "Apple Intelligence is currently unavailable on this device."
                 isGenerating = false
                 return
             }

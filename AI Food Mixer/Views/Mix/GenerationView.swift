@@ -21,7 +21,7 @@ struct GenerationView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if isGeneratingImage || viewModel.generationService.isGenerating || (hasStartedGeneration && generatedImage == nil) {
+                if viewModel.generationService.error == nil, isGeneratingImage || viewModel.generationService.isGenerating || (hasStartedGeneration && generatedImage == nil) {
                     generatingHeader
                 }
 
@@ -246,13 +246,27 @@ struct GenerationView: View {
     }
 
     private func errorView(_ message: String) -> some View {
-        ContentUnavailableView {
-            Label("Generation Error", systemImage: "exclamationmark.triangle")
-        } description: {
-            Text(message)
-        } actions: {
-            Button("Try Again") {
-                hasStartedGeneration = false
+        Group {
+            if !viewModel.generationService.isAvailable {
+                ContentUnavailableView {
+                    Label("Apple Intelligence Required", systemImage: "apple.intelligence")
+                } description: {
+                    Text(message)
+                } actions: {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+            } else {
+                ContentUnavailableView {
+                    Label("Generation Error", systemImage: "exclamationmark.triangle")
+                } description: {
+                    Text(message)
+                } actions: {
+                    Button("Try Again") {
+                        hasStartedGeneration = false
+                    }
+                }
             }
         }
     }
