@@ -23,6 +23,7 @@ AI Food Mixer is a native iOS app that transforms food creativity into a tap-dri
 - `AI Food Mixer/Views/` — SwiftUI views organized by tab (Mix, Creations, Discover, Settings)
 - `AI Food Mixer/Extensions/` — `Color+Hex`, `AttributedString+Markdown`
 - `FoodTuner/Sources/` — Food Tuner CLI tool (macOS, shares app models via SPM)
+- `fastlane/` — Fastlane configuration for automated App Store screenshots
 - `docs/` — Architecture, data model, UI guide, foundation model integration, and customization docs
 
 ## Build & Run
@@ -42,6 +43,22 @@ swift run food-tuner --help
 ```
 
 Foundation Model and Image Playground features require an Apple Silicon device. The simulator uses placeholder generation with simulated streaming.
+
+### App Store Screenshots
+
+Automated via [fastlane snapshot](https://docs.fastlane.tools/actions/snapshot/).
+
+```bash
+# Install fastlane (one-time)
+bundle install
+
+# Generate screenshots for all configured devices and languages
+bundle exec fastlane snapshot
+
+# Screenshots are saved to fastlane/screenshots/
+```
+
+Configuration: `fastlane/Snapfile`. Screenshot test: `AI Food MixerUITests/AppStoreScreenshots.swift`.
 
 ## Key Concepts
 

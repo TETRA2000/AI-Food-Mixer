@@ -1,0 +1,35 @@
+# Snapfile — Fastlane Snapshot configuration
+# Docs: https://docs.fastlane.tools/actions/snapshot/
+
+# Devices to capture (App Store requires 6.7", 6.1", and optionally iPad)
+devices([
+  "iPhone 17 Pro Max",    # 6.9" — required for 6.7" class
+  "iPhone 17 Pro",        # 6.3"
+  "iPad Pro 13-inch (M5)" # iPad — required if supporting iPad
+])
+
+# Languages / locales
+languages([
+  "en-US"
+])
+
+# Xcode scheme
+scheme("AI Food Mixer")
+
+# Output directory
+output_directory("./fastlane/screenshots")
+
+# Clear old screenshots before each run
+clear_previous_screenshots(true)
+
+# Stop on first error
+stop_after_first_error(true)
+
+# Number of concurrent simulators
+concurrent_simulators(true)
+
+# Override status bar (clean look for App Store)
+override_status_bar(true)
+
+# Test target and test plan
+launch_arguments(["-UITests", "-FASTLANE_SNAPSHOT"])
