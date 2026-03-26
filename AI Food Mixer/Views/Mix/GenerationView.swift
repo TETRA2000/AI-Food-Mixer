@@ -17,11 +17,12 @@ struct GenerationView: View {
     @State private var generatedImageData: Data?
     @State private var isGeneratingImage = false
     @State private var imageError: String?
+    @State private var generationTrigger = UUID()
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if viewModel.generationService.error == nil, isGeneratingImage || viewModel.generationService.isGenerating || (hasStartedGeneration && generatedImage == nil) {
+                if viewModel.generationService.error == nil, isGeneratingImage || viewModel.generationService.isGenerating {
                     generatingHeader
                 }
 
@@ -43,7 +44,7 @@ struct GenerationView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .primaryAction) {
-                    if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating && generatedImage != nil {
+                    if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating && !isGeneratingImage {
                         Button {
                             showShareSheet = true
                         } label: {
@@ -62,6 +63,8 @@ struct GenerationView: View {
             .sheet(isPresented: $showShareSheet) {
                 if let generatedImage {
                     ShareSheetView(activityItems: [generatedImage])
+                } else {
+                    ShareSheetView(activityItems: [viewModel.generationService.streamedText])
                 }
             }
             .alert("Save Creation", isPresented: $showSaveConfirmation) {
@@ -84,7 +87,7 @@ struct GenerationView: View {
                 imageError = nil
                 hasStartedGeneration = false
             }
-            .task(id: viewModel.isShowingGeneration) {
+            .task(id: generationTrigger) {
                 guard viewModel.isShowingGeneration else { return }
                 guard !hasStartedGeneration else { return }
                 hasStartedGeneration = true
@@ -145,6 +148,17 @@ struct GenerationView: View {
                         .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 } else if isGeneratingImage {
                     imageGeneratingPlaceholder
+                } else if let imageError {
+                    Text(imageError)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.ultraThinMaterial)
+                        )
+                        .padding(.horizontal)
                 }
 
                 // Markdown content
@@ -264,7 +278,12 @@ struct GenerationView: View {
                     Text(message)
                 } actions: {
                     Button("Try Again") {
+                        viewModel.generationService.error = nil
+                        generatedImage = nil
+                        generatedImageData = nil
+                        imageError = nil
                         hasStartedGeneration = false
+                        generationTrigger = UUID()
                     }
                 }
             }

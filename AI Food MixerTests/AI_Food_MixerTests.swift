@@ -1235,6 +1235,30 @@ struct AI_Food_MixerTests {
         #expect(service.generatedFoodName == "Spaced Name")
     }
 
+    @Test func foodGenerationServiceIsGeneratingFalseAfterCancellation() async {
+        let service = FoodGenerationService()
+        let ingredients = [
+            IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
+            IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
+        ]
+
+        // Start generation in a separate task and cancel it via task cancellation
+        let generateTask = Task { @MainActor in
+            await service.generate(ingredients: ingredients)
+        }
+
+        // Give it a moment to start, then cancel the task (simulates SwiftUI .task cancellation)
+        try? await Task.sleep(for: .milliseconds(50))
+        generateTask.cancel()
+
+        await generateTask.value
+
+        // isGenerating must be false after cancellation — previously it stayed true
+        await MainActor.run {
+            #expect(!service.isGenerating)
+        }
+    }
+
     @Test func foodGenerationServiceCancelStopsGeneration() async {
         let service = FoodGenerationService()
         let ingredients = [
@@ -1616,5 +1640,22 @@ struct AI_Food_MixerTests {
         if vm.generationService.error == nil {
             #expect(!vm.generationService.streamedText.isEmpty)
         }
+    }
+
+    // MARK: - Generation Header Visibility (Simulator)
+
+    @Test func generationServiceIsNotGeneratingAfterComplete() async {
+        // Verifies that on the simulator, isGenerating becomes false after
+        // generate() finishes, so the "Mixing your creation..." header disappears.
+        let service = FoodGenerationService()
+        let ingredients = [
+            IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
+            IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
+        ]
+        await service.generate(ingredients: ingredients)
+
+        #expect(!service.isGenerating, "isGenerating must be false after generation completes")
+        #expect(service.error == nil || !service.streamedText.isEmpty,
+                "Either generation succeeded with text or an error was set")
     }
 }
