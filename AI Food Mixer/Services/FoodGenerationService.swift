@@ -87,10 +87,11 @@ final class FoodGenerationService {
         generationTask?.cancel()
 
         let task = Task { @MainActor in
+            defer { isGenerating = false }
+
             #if canImport(FoundationModels)
             guard SystemLanguageModel.default.availability == .available else {
                 error = unavailabilityMessage ?? "Apple Intelligence is currently unavailable on this device."
-                isGenerating = false
                 return
             }
 
@@ -122,8 +123,6 @@ final class FoodGenerationService {
                 self.error = "Generation failed: \(error.localizedDescription)"
             }
             #endif
-
-            isGenerating = false
         }
         generationTask = task
 
@@ -173,7 +172,7 @@ final class FoodGenerationService {
 
         let names = ingredients.map(\.label)
         let title = names.count > 1
-            ? "\(names.first!) \(names.last!) Fusion"
+            ? "\(names.first ?? "Mystery") \(names.last ?? "Mystery") Fusion"
             : "\(names.first ?? "Mystery") Creation"
 
         let layers = ingredients.enumerated().map { index, ingredient in
