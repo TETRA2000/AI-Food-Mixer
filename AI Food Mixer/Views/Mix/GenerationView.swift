@@ -22,7 +22,7 @@ struct GenerationView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if viewModel.generationService.error == nil, isGeneratingImage || viewModel.generationService.isGenerating || (hasStartedGeneration && generatedImage == nil) {
+                if viewModel.generationService.error == nil, isGeneratingImage || viewModel.generationService.isGenerating {
                     generatingHeader
                 }
 
@@ -44,7 +44,7 @@ struct GenerationView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .primaryAction) {
-                    if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating && generatedImage != nil {
+                    if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating && !isGeneratingImage {
                         Button {
                             showShareSheet = true
                         } label: {
@@ -63,6 +63,8 @@ struct GenerationView: View {
             .sheet(isPresented: $showShareSheet) {
                 if let generatedImage {
                     ShareSheetView(activityItems: [generatedImage])
+                } else {
+                    ShareSheetView(activityItems: [viewModel.generationService.streamedText])
                 }
             }
             .alert("Save Creation", isPresented: $showSaveConfirmation) {

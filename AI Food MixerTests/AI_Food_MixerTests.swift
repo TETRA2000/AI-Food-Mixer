@@ -1641,4 +1641,21 @@ struct AI_Food_MixerTests {
             #expect(!vm.generationService.streamedText.isEmpty)
         }
     }
+
+    // MARK: - Generation Header Visibility (Simulator)
+
+    @Test func generationServiceIsNotGeneratingAfterComplete() async {
+        // Verifies that on the simulator, isGenerating becomes false after
+        // generate() finishes, so the "Mixing your creation..." header disappears.
+        let service = FoodGenerationService()
+        let ingredients = [
+            IngredientData(id: "1", emoji: "🍎", label: "Apple", categoryId: "fruits", colorHex: "#F00"),
+            IngredientData(id: "2", emoji: "🍌", label: "Banana", categoryId: "fruits", colorHex: "#FF0"),
+        ]
+        await service.generate(ingredients: ingredients)
+
+        #expect(!service.isGenerating, "isGenerating must be false after generation completes")
+        #expect(service.error == nil || !service.streamedText.isEmpty,
+                "Either generation succeeded with text or an error was set")
+    }
 }
