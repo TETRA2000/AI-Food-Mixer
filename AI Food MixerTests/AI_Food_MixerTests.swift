@@ -888,6 +888,38 @@ struct AI_Food_MixerTests {
         #expect(type(of: vm) == SettingsViewModel.self)
     }
 
+    @Test func settingsViewModelDeleteCategoryCascadesToIngredients() throws {
+        let container = try ModelContainer(
+            for: CustomCategory.self, CustomIngredient.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+
+        let category = CustomCategory(
+            categoryId: "cat_to_delete",
+            displayName: "Snacks",
+            emoji: "🍿",
+            colorHex: "#FF0000",
+            secondaryColorHex: "#FF8888",
+            sortOrder: 10
+        )
+        context.insert(category)
+        context.insert(CustomIngredient(emoji: "🥨", label: "Pretzel", categoryId: "cat_to_delete", colorHex: "#FF0000"))
+        context.insert(CustomIngredient(emoji: "🍇", label: "Grape", categoryId: "other_cat", colorHex: "#00FF00"))
+        try context.save()
+
+        let vm = SettingsViewModel()
+        vm.deleteCategory(category, modelContext: context)
+
+        let remainingCategories = try context.fetch(FetchDescriptor<CustomCategory>())
+        let remainingIngredients = try context.fetch(FetchDescriptor<CustomIngredient>())
+        #expect(remainingCategories.isEmpty)
+        // Only the ingredient in the deleted category is removed; ingredients in
+        // other categories survive.
+        #expect(remainingIngredients.count == 1)
+        #expect(remainingIngredients.first?.categoryId == "other_cat")
+    }
+
     // MARK: - Project Model
 
     @Test func projectInitialization() {

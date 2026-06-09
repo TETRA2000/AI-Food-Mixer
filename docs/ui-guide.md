@@ -93,6 +93,16 @@ Full-screen modal (`fullScreenCover`) displaying streaming Markdown output:
   - **Customisation**: Ingredient & Category manager
   - **About**: Version and platform info
 
+## iOS 27 Enhancements
+
+The deployment target is iOS 26.4, so all iOS 27 APIs below are gated with
+`if #available(iOS 27.0, *)` and degrade gracefully on iOS 26.
+
+| Surface | iOS 27 API | Behavior |
+|---------|-----------|----------|
+| `ProjectDetailView` | `toolbarMinimizeBehavior(.onScrollDown, for: .navigationBar)` (via the `MinimizeToolbarOnScroll` modifier) | The navigation bar minimizes as the reader scrolls down a long concept, reclaiming vertical space. No-op on iOS 26. |
+| `IngredientManagerView` | `confirmationDialog(_:item:)` (via the `DeleteCategoryConfirmation` modifier) | Swiping to delete a custom category now asks for confirmation — the category and its custom ingredients are removed only after confirming. On iOS 26 the same dialog is driven by the `isPresented:`/`presenting:` fallback. |
+
 ## Accessibility
 
 All interactive elements include accessibility labels and hints:

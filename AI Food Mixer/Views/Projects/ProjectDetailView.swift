@@ -35,6 +35,7 @@ struct ProjectDetailView: View {
         }
         .navigationTitle(project.title)
         .navigationBarTitleDisplayMode(.inline)
+        .modifier(MinimizeToolbarOnScroll())
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 if project.image != nil {
@@ -162,5 +163,20 @@ struct FlowLayout: Layout {
         let positions: [CGPoint]
         let sizes: [CGSize]
         let size: CGSize
+    }
+}
+
+// MARK: - iOS 27 Toolbar Minimize
+
+/// Minimizes the navigation bar as the reader scrolls down a long concept,
+/// reclaiming vertical space. Uses the iOS 27 `toolbarMinimizeBehavior` API and
+/// is a no-op on earlier OS versions (deployment target is 26.4).
+struct MinimizeToolbarOnScroll: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 27.0, *) {
+            content.toolbarMinimizeBehavior(.onScrollDown, for: .navigationBar)
+        } else {
+            content
+        }
     }
 }
