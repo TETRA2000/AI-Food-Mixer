@@ -8,7 +8,6 @@ struct IngredientManagerView: View {
     @State private var viewModel = SettingsViewModel()
     @State private var showAddCategory = false
     @State private var categoryPendingDeletion: CustomCategory?
-    @State private var isConfirmingCategoryDeletion = false
 
     var body: some View {
         List {
@@ -49,17 +48,13 @@ struct IngredientManagerView: View {
                     .onDelete { offsets in
                         if let index = offsets.first {
                             categoryPendingDeletion = customCategories[index]
-                            isConfirmingCategoryDeletion = true
                         }
                     }
                 }
             }
         }
         .modifier(
-            DeleteCategoryConfirmation(
-                category: $categoryPendingDeletion,
-                isPresented: $isConfirmingCategoryDeletion
-            ) { category in
+            DeleteCategoryConfirmation(category: $categoryPendingDeletion) { category in
                 viewModel.deleteCategory(category, modelContext: modelContext)
             }
         )
@@ -82,12 +77,12 @@ struct IngredientManagerView: View {
 // MARK: - Delete Category Confirmation (iOS 27 item binding)
 
 /// Confirms deletion of a custom category before removing it and its custom
-/// ingredients. On iOS 27 it uses the new `confirmationDialog(_:item:)` overload
-/// driven by the optional category; on earlier OS versions (deployment target is
-/// 26.4) it falls back to the `isPresented:`/`presenting:` form.
+/// ingredients. The optional `category` is the single source of truth: it drives
+/// the iOS 27 `confirmationDialog(_:item:)` overload directly, and on earlier OS
+/// versions (deployment target is 26.4) the `isPresented:`/`presenting:` fallback
+/// derives its presentation flag from the same optional.
 struct DeleteCategoryConfirmation: ViewModifier {
     @Binding var category: CustomCategory?
-    @Binding var isPresented: Bool
     let onDelete: (CustomCategory) -> Void
 
     func body(content: Content) -> some View {
@@ -102,9 +97,13 @@ struct DeleteCategoryConfirmation: ViewModifier {
                 message(for: category)
             }
         } else {
+            let isPresented = Binding(
+                get: { category != nil },
+                set: { if !$0 { category = nil } }
+            )
             content.confirmationDialog(
                 "Delete Category",
-                isPresented: $isPresented,
+                isPresented: isPresented,
                 titleVisibility: .visible,
                 presenting: category
             ) { category in
