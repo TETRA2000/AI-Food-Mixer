@@ -6,22 +6,25 @@ struct ShareSheetView: UIViewControllerRepresentable {
     var applicationActivities: [UIActivity]? = nil
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(
+        UIActivityViewController(
             activityItems: activityItems,
             applicationActivities: applicationActivities
         )
-
-        // Required on iPad: configure popover presentation to avoid crash
-        if let popover = controller.popoverPresentationController {
-            popover.permittedArrowDirections = .any
-            // Use a centered sourceRect as fallback; the presenting sheet
-            // provides the context, so this just satisfies the iPad requirement.
-            popover.sourceView = UIView()
-            popover.sourceRect = .zero
-        }
-
-        return controller
     }
 
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
+        // Required on iPad: the activity controller is presented in a popover,
+        // which needs a source view that lives in the window hierarchy. Anchor it
+        // to the controller's own (now attached) view, centered with no arrow, so
+        // the popover has a defined source point instead of a detached UIView.
+        guard let popover = uiViewController.popoverPresentationController else { return }
+        popover.permittedArrowDirections = []
+        popover.sourceView = uiViewController.view
+        popover.sourceRect = CGRect(
+            x: uiViewController.view.bounds.midX,
+            y: uiViewController.view.bounds.midY,
+            width: 0,
+            height: 0
+        )
+    }
 }
