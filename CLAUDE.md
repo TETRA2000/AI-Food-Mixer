@@ -28,7 +28,7 @@ AI Food Mixer is a native iOS app that transforms food creativity into a tap-dri
 
 ## Build & Run
 
-Requires Xcode 26+ and iOS 26+ deployment target.
+Requires Xcode 27+ and iOS 27+ deployment target.
 
 ```bash
 # Build iOS app

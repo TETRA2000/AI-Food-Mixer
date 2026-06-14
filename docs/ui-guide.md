@@ -95,8 +95,9 @@ Full-screen modal (`fullScreenCover`) displaying streaming Markdown output:
 
 ## iOS 27 Enhancements
 
-The deployment target is iOS 26.4, so all iOS 27 APIs below are gated with
-`if #available(iOS 27.0, *)` and degrade gracefully on iOS 26.
+The deployment target is iOS 27.0, so the iOS 27 APIs below are available
+unconditionally. The `if #available(iOS 27.0, *)` guards and iOS 26 fallbacks
+in the code are retained from when iOS 26 was supported and are now no-ops.
 
 | Surface | iOS 27 API | Behavior |
 |---------|-----------|----------|

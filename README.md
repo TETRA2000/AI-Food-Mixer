@@ -28,8 +28,8 @@ AI Food Mixer is an iOS app that transforms food creativity into a tap-driven mi
 
 ## Requirements
 
-- iOS 26+
-- Xcode 26+
+- iOS 27+
+- Xcode 27+
 - Apple Silicon device (for Foundation Model and Image Playground features)
 
 ## Architecture
