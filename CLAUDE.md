@@ -2,7 +2,7 @@
 
 ## Overview
 
-AI Food Mixer is a native iOS app that transforms food creativity into a tap-driven mixing experience. Users select food emoji "ingredient" cards from curated culinary categories, and the app generates a creative new food concept — complete with a name, layered structure, flavor profile, and serving suggestion — using Apple's on-device Foundation Model. An accompanying image is generated via Image Playground. No keyboard required.
+AI Food Mixer is a native iOS app that transforms food creativity into a tap-driven mixing experience. Users select food emoji "ingredient" cards from curated culinary categories, and the app generates a creative new food concept — complete with a name, layered structure, flavor profile, and serving suggestion — using Apple's on-device Foundation Model. An accompanying image can be generated on demand via Apple's Image Playground sheet. No keyboard required.
 
 ## Tech Stack
 
@@ -66,7 +66,7 @@ Configuration: `fastlane/Snapfile`. Screenshot test: `AI Food MixerUITests/AppSt
 - **JSON blob storage** — `Project.ingredientsData` stores ingredients as encoded JSON `Data`, making projects self-contained.
 - **Fixed system prompt** — The generation prompt is a static string in `DefaultSystemPrompts.generationPromptBody`, used directly by `FoodGenerationService`.
 - **Simulator fallback** — `FoodGenerationService` uses `#if canImport(FoundationModels)` to provide placeholder content on simulator.
-- **Image generation** — `GenerationView` uses `#if canImport(ImagePlayground)` to generate food concept images on-device.
+- **Image generation** — Once the text concept is ready, `GenerationView` shows a button that presents the system **Image Playground sheet** (`.imagePlaygroundSheet`, prompted with `String.imagePlaygroundConcept`) to create an image on-device. The sheet returns a file URL, loaded via `ImageImportService`. The button is hidden where `ImagePlaygroundViewController.isAvailable` is `false` (e.g., simulator). The programmatic `ImageCreator` API was **removed** — Apple discontinued it in iOS 27.
 
 ## Development Guidelines
 
