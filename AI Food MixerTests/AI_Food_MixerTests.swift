@@ -2,6 +2,7 @@ import Testing
 import SwiftUI
 import SwiftData
 import Foundation
+import UIKit
 @testable import AI_Food_Mixer
 
 @MainActor
@@ -888,6 +889,38 @@ struct AI_Food_MixerTests {
         #expect(type(of: vm) == SettingsViewModel.self)
     }
 
+    @Test func settingsViewModelDeleteCategoryCascadesToIngredients() throws {
+        let container = try ModelContainer(
+            for: CustomCategory.self, CustomIngredient.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+
+        let category = CustomCategory(
+            categoryId: "cat_to_delete",
+            displayName: "Snacks",
+            emoji: "🍿",
+            colorHex: "#FF0000",
+            secondaryColorHex: "#FF8888",
+            sortOrder: 10
+        )
+        context.insert(category)
+        context.insert(CustomIngredient(emoji: "🥨", label: "Pretzel", categoryId: "cat_to_delete", colorHex: "#FF0000"))
+        context.insert(CustomIngredient(emoji: "🍇", label: "Grape", categoryId: "other_cat", colorHex: "#00FF00"))
+        try context.save()
+
+        let vm = SettingsViewModel()
+        vm.deleteCategory(category, modelContext: context)
+
+        let remainingCategories = try context.fetch(FetchDescriptor<CustomCategory>())
+        let remainingIngredients = try context.fetch(FetchDescriptor<CustomIngredient>())
+        #expect(remainingCategories.isEmpty)
+        // Only the ingredient in the deleted category is removed; ingredients in
+        // other categories survive.
+        #expect(remainingIngredients.count == 1)
+        #expect(remainingIngredients.first?.categoryId == "other_cat")
+    }
+
     // MARK: - Project Model
 
     @Test func projectInitialization() {
@@ -1657,5 +1690,43 @@ struct AI_Food_MixerTests {
         #expect(!service.isGenerating, "isGenerating must be false after generation completes")
         #expect(service.error == nil || !service.streamedText.isEmpty,
                 "Either generation succeeded with text or an error was set")
+    }
+
+    // MARK: - ImageImportService
+
+    @Test func imageImportServiceLoadsValidImage() throws {
+        // Render a small valid PNG and write it to a temporary file,
+        // mimicking the file URL the Image Playground sheet hands back.
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4))
+        let image = renderer.image { context in
+            UIColor.red.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+        }
+        let pngData = try #require(image.pngData())
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ii_valid_\(UUID().uuidString).png")
+        try pngData.write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let result = ImageImportService.loadImage(from: url)
+        #expect(result != nil)
+        #expect(result?.data.isEmpty == false)
+    }
+
+    @Test func imageImportServiceReturnsNilForInvalidData() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ii_invalid_\(UUID().uuidString).bin")
+        try Data([0x00, 0x01, 0x02, 0x03]).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let result = ImageImportService.loadImage(from: url)
+        #expect(result == nil)
+    }
+
+    @Test func imageImportServiceReturnsNilForMissingFile() {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ii_missing_\(UUID().uuidString).png")
+        let result = ImageImportService.loadImage(from: url)
+        #expect(result == nil)
     }
 }

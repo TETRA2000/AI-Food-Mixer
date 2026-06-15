@@ -7,6 +7,7 @@ struct IngredientManagerView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = SettingsViewModel()
     @State private var showAddCategory = false
+    @State private var categoryPendingDeletion: CustomCategory?
 
     var body: some View {
         List {
@@ -45,13 +46,18 @@ struct IngredientManagerView: View {
                         }
                     }
                     .onDelete { offsets in
-                        for index in offsets {
-                            viewModel.deleteCategory(customCategories[index], modelContext: modelContext)
+                        if let index = offsets.first {
+                            categoryPendingDeletion = customCategories[index]
                         }
                     }
                 }
             }
         }
+        .modifier(
+            DeleteCategoryConfirmation(category: $categoryPendingDeletion) { category in
+                viewModel.deleteCategory(category, modelContext: modelContext)
+            }
+        )
         .navigationTitle("Ingredient Categories")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -65,6 +71,58 @@ struct IngredientManagerView: View {
         .sheet(isPresented: $showAddCategory) {
             CategoryEditorView()
         }
+    }
+}
+
+// MARK: - Delete Category Confirmation (iOS 27 item binding)
+
+/// Confirms deletion of a custom category before removing it and its custom
+/// ingredients. The optional `category` is the single source of truth: it drives
+/// the iOS 27 `confirmationDialog(_:item:)` overload directly, and on earlier OS
+/// versions (deployment target is 26.4) the `isPresented:`/`presenting:` fallback
+/// derives its presentation flag from the same optional.
+struct DeleteCategoryConfirmation: ViewModifier {
+    @Binding var category: CustomCategory?
+    let onDelete: (CustomCategory) -> Void
+
+    func body(content: Content) -> some View {
+        if #available(iOS 27.0, *) {
+            content.confirmationDialog(
+                "Delete Category",
+                item: $category,
+                titleVisibility: .visible
+            ) { category in
+                deleteButton(for: category)
+            } message: { category in
+                message(for: category)
+            }
+        } else {
+            let isPresented = Binding(
+                get: { category != nil },
+                set: { if !$0 { category = nil } }
+            )
+            content.confirmationDialog(
+                "Delete Category",
+                isPresented: isPresented,
+                titleVisibility: .visible,
+                presenting: category
+            ) { category in
+                deleteButton(for: category)
+            } message: { category in
+                message(for: category)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func deleteButton(for category: CustomCategory) -> some View {
+        Button("Delete \(category.displayName)", role: .destructive) {
+            onDelete(category)
+        }
+    }
+
+    private func message(for category: CustomCategory) -> Text {
+        Text("Deleting \"\(category.displayName)\" also removes its custom ingredients. This can't be undone.")
     }
 }
 
