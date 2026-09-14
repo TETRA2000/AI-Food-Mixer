@@ -2,15 +2,15 @@
 
 ## Overview
 
-AI Food Mixer is a native iOS app that transforms food creativity into a tap-driven mixing experience. Users select food emoji "ingredient" cards from curated culinary categories, and the app generates a creative new food concept — complete with a name, layered structure, flavor profile, and serving suggestion — using Apple's on-device Foundation Model. An accompanying image is generated via Image Playground. No keyboard required.
+AI Food Mixer is a native iOS app that transforms food creativity into a tap-driven mixing experience. Users select food emoji "ingredient" cards from curated culinary categories, and the app generates a creative new food concept — complete with a name, layered structure, flavor profile, and serving suggestion — using Apple's on-device Foundation Model. An accompanying image can be generated on demand via Apple's Image Playground sheet. No keyboard required.
 
 ## Tech Stack
 
 - **Language**: Swift
 - **UI**: SwiftUI
 - **Data**: SwiftData (on-device, no cloud)
-- **AI**: Apple Foundation Model (iOS 26+, on-device only)
-- **Image**: Image Playground (iOS 26+, on-device)
+- **AI**: Apple Foundation Model (iOS 27+, on-device only)
+- **Image**: Image Playground sheet (iOS 27+, on-device)
 - **Architecture**: MVVM with `@Observable` macros
 - **Dependencies**: None for the iOS app (Apple frameworks only); [swift-argument-parser](https://github.com/apple/swift-argument-parser) for the CLI tool
 
@@ -18,17 +18,17 @@ AI Food Mixer is a native iOS app that transforms food creativity into a tap-dri
 
 - `AI Food Mixer/Models/` — Data types (`IngredientData`, `CategoryData`) and SwiftData models (`Project`, `CustomIngredient`, `CustomCategory`)
 - `AI Food Mixer/Data/` — Static default content (10 categories, ~120 food emoji ingredients, generation prompt, 5 discover items)
-- `AI Food Mixer/Services/` — Business logic (`FoodGenerationService`, `ExportService`, `HapticService`)
+- `AI Food Mixer/Services/` — Business logic (`FoodGenerationService`, `ImageImportService`, `ExportService`, `HapticService`, `AppInfo`)
 - `AI Food Mixer/ViewModels/` — UI state management (`MixViewModel`, `ProjectsViewModel`, `DiscoverViewModel`, `SettingsViewModel`)
 - `AI Food Mixer/Views/` — SwiftUI views organized by tab (Mix, Creations, Discover, Settings)
-- `AI Food Mixer/Extensions/` — `Color+Hex`, `AttributedString+Markdown`
+- `AI Food Mixer/Extensions/` — `Color+Hex`, `AttributedString+Markdown`, `String+MarkdownTitle` (Markdown title extraction and Image Playground concept text)
 - `FoodTuner/Sources/` — Food Tuner CLI tool (macOS, shares app models via SPM)
 - `fastlane/` — Fastlane configuration for automated App Store screenshots
 - `docs/` — Architecture, data model, UI guide, foundation model integration, and customization docs
 
 ## Build & Run
 
-Requires Xcode 26+ and iOS 26+ deployment target.
+Requires Xcode 27+ and iOS 27+ deployment target.
 
 ```bash
 # Build iOS app
@@ -66,7 +66,8 @@ Configuration: `fastlane/Snapfile`. Screenshot test: `AI Food MixerUITests/AppSt
 - **JSON blob storage** — `Project.ingredientsData` stores ingredients as encoded JSON `Data`, making projects self-contained.
 - **Fixed system prompt** — The generation prompt is a static string in `DefaultSystemPrompts.generationPromptBody`, used directly by `FoodGenerationService`.
 - **Simulator fallback** — `FoodGenerationService` uses `#if canImport(FoundationModels)` to provide placeholder content on simulator.
-- **Image generation** — `GenerationView` uses `#if canImport(ImagePlayground)` to generate food concept images on-device.
+- **No availability gates** — The deployment target is iOS 27.0, so iOS 27 APIs (e.g. `confirmationDialog(_:item:)`) are used directly. Do not add `if #available(iOS 27.0, *)` guards or iOS 26 fallbacks. Verify any new API against the SDK's `.swiftinterface` before adopting it; `toolbarMinimizeBehavior(_:for:)`, for example, does not exist (only `tabBarMinimizeBehavior(_:)` does).
+- **Image generation** — Once the text concept is ready, `GenerationView` shows a button that presents the system **Image Playground sheet** (`.imagePlaygroundSheet`, prompted with `String.imagePlaygroundConcept`) to create an image on-device. The sheet returns a file URL, loaded via `ImageImportService`. The button is hidden where `ImagePlaygroundViewController.isAvailable` is `false` (e.g., simulator). The programmatic `ImageCreator` API was **removed** — Apple discontinued it in iOS 27.
 
 ## Development Guidelines
 

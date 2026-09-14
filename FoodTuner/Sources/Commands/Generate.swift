@@ -74,7 +74,7 @@ struct Generate: AsyncParsableCommand {
             print(result)
         }
         #else
-        throw ValidationError("FoundationModels framework is not available. Requires macOS 26+ or iOS 26+.")
+        throw ValidationError("FoundationModels framework is not available. Requires macOS 26+ or iOS 27+.")
         #endif
     }
 }

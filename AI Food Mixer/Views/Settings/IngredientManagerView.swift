@@ -7,6 +7,7 @@ struct IngredientManagerView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = SettingsViewModel()
     @State private var showAddCategory = false
+    @State private var categoryPendingDeletion: CustomCategory?
 
     var body: some View {
         List {
@@ -45,13 +46,18 @@ struct IngredientManagerView: View {
                         }
                     }
                     .onDelete { offsets in
-                        for index in offsets {
-                            viewModel.deleteCategory(customCategories[index], modelContext: modelContext)
+                        if let index = offsets.first {
+                            categoryPendingDeletion = customCategories[index]
                         }
                     }
                 }
             }
         }
+        .modifier(
+            DeleteCategoryConfirmation(category: $categoryPendingDeletion) { category in
+                viewModel.deleteCategory(category, modelContext: modelContext)
+            }
+        )
         .navigationTitle("Ingredient Categories")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -64,6 +70,30 @@ struct IngredientManagerView: View {
         }
         .sheet(isPresented: $showAddCategory) {
             CategoryEditorView()
+        }
+    }
+}
+
+// MARK: - Delete Category Confirmation
+
+/// Confirms deletion of a custom category before removing it and its custom
+/// ingredients. The optional `category` is the single source of truth and drives
+/// the iOS 27 `confirmationDialog(_:item:)` overload directly.
+struct DeleteCategoryConfirmation: ViewModifier {
+    @Binding var category: CustomCategory?
+    let onDelete: (CustomCategory) -> Void
+
+    func body(content: Content) -> some View {
+        content.confirmationDialog(
+            "Delete Category",
+            item: $category,
+            titleVisibility: .visible
+        ) { category in
+            Button("Delete \(category.displayName)", role: .destructive) {
+                onDelete(category)
+            }
+        } message: { category in
+            Text("Deleting \"\(category.displayName)\" also removes its custom ingredients. This can't be undone.")
         }
     }
 }

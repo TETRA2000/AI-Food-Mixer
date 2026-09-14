@@ -69,6 +69,7 @@ Full-screen modal (`fullScreenCover`) displaying streaming Markdown output:
 
 - Progress indicator during generation
 - Markdown rendering via `AttributedString`
+- **Generate Image** button (shown once the concept is ready and `ImagePlaygroundViewController.isAvailable` is true) presents the system Image Playground sheet; the resulting image is displayed above the concept and saved with the creation
 - Toolbar actions: Close, Share, Save
 - Save dialog with editable name
 - Error state with retry button
@@ -88,10 +89,23 @@ Full-screen modal (`fullScreenCover`) displaying streaming Markdown output:
 
 ## Settings Tab
 
-- Grouped `List` with three sections:
-  - **AI Configuration**: System Prompts editor
+- Grouped `List` with two sections:
   - **Customisation**: Ingredient & Category manager
-  - **About**: Version and platform info
+  - **About**: Version (read from `CFBundleShortVersionString` via `AppInfo.version()`) and platform (`AppInfo.platform`, "iOS 27")
+
+## iOS 27 Enhancements
+
+The deployment target is iOS 27.0, so iOS 27 APIs are used unconditionally —
+there are no `if #available(iOS 27.0, *)` guards or iOS 26 fallbacks.
+
+| Surface | iOS 27 API | Behavior |
+|---------|-----------|----------|
+| `IngredientManagerView` | `confirmationDialog(_:item:)` (via the `DeleteCategoryConfirmation` modifier) | Swiping to delete a custom category asks for confirmation — the category and its custom ingredients are removed only after confirming. The optional pending category is the single source of truth for the dialog. |
+| `GenerationView` | `imagePlaygroundSheet(isPresented:concept:onCompletion:)` | Presents the system Image Playground sheet to generate an image for the concept; replaces the `ImageCreator` API removed in iOS 27. |
+
+Note: an earlier revision used a `toolbarMinimizeBehavior(_:for:)` modifier on
+`ProjectDetailView`. That API does not exist in the iOS 27 SDK (only
+`tabBarMinimizeBehavior(_:)` does) and it was removed.
 
 ## Accessibility
 

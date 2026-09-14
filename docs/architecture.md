@@ -17,7 +17,8 @@ AI Food Mixer follows the **MVVM (Model-View-ViewModel)** architecture pattern u
 ├─────────────────────────────────────┤
 │             Services                │
 │  FoodGenerationService              │
-│  ExportService │ HapticService      │
+│  ImageImportService │ ExportService │
+│  HapticService │ AppInfo            │
 ├─────────────────────────────────────┤
 │           Data Layer                │
 │  SwiftData Models (Project, Custom*)│
@@ -25,7 +26,7 @@ AI Food Mixer follows the **MVVM (Model-View-ViewModel)** architecture pattern u
 │  Default Data (Categories, etc.)    │
 ├─────────────────────────────────────┤
 │        Apple Foundation Model       │
-│         (iOS 26+, on-device)        │
+│         (iOS 27+, on-device)        │
 └─────────────────────────────────────┘
 ```
 

@@ -29,6 +29,14 @@ let package = Package(
                 "AI Food MixerTests",
                 "AI Food MixerUITests",
                 "AI-Food-Mixer-PRD.md",
+                "CLAUDE.md",
+                "Gemfile",
+                "PRIVACY.md",
+                "README.md",
+                "docs",
+                "fastlane",
+                // Bundler installs gems here (gitignored); their .lproj folders otherwise break resource scanning.
+                "vendor",
             ],
             sources: [
                 "AI Food Mixer/Models/Ingredient.swift",

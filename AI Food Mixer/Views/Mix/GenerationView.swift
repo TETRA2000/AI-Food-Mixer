@@ -15,14 +15,14 @@ struct GenerationView: View {
     @State private var hasStartedGeneration = false
     @State private var generatedImage: UIImage?
     @State private var generatedImageData: Data?
-    @State private var isGeneratingImage = false
+    @State private var showImagePlayground = false
     @State private var imageError: String?
     @State private var generationTrigger = UUID()
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if viewModel.generationService.error == nil, isGeneratingImage || viewModel.generationService.isGenerating {
+                if viewModel.generationService.error == nil, viewModel.generationService.isGenerating {
                     generatingHeader
                 }
 
@@ -44,7 +44,7 @@ struct GenerationView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .primaryAction) {
-                    if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating && !isGeneratingImage {
+                    if !viewModel.generationService.streamedText.isEmpty && !viewModel.generationService.isGenerating {
                         Button {
                             showShareSheet = true
                         } label: {
@@ -83,7 +83,7 @@ struct GenerationView: View {
                 viewModel.projectTitle = ""
                 generatedImage = nil
                 generatedImageData = nil
-                isGeneratingImage = false
+                showImagePlayground = false
                 imageError = nil
                 hasStartedGeneration = false
             }
@@ -92,13 +92,18 @@ struct GenerationView: View {
                 guard !hasStartedGeneration else { return }
                 hasStartedGeneration = true
 
-                // Generate image first, then text
-                await generateImage()
-
-                guard !Task.isCancelled else { return }
-
+                // Generate the text concept; the image is created on demand by the
+                // user via the Image Playground sheet once the concept is ready.
                 await viewModel.mix()
             }
+            #if canImport(ImagePlayground)
+            .imagePlaygroundSheet(
+                isPresented: $showImagePlayground,
+                concept: viewModel.generationService.streamedText.imagePlaygroundConcept
+            ) { url in
+                loadGeneratedImage(from: url)
+            }
+            #endif
         }
     }
 
@@ -137,7 +142,7 @@ struct GenerationView: View {
                     .padding(.horizontal)
                 }
 
-                // Generated image or progress
+                // Generated image, or an affordance to create one
                 if let generatedImage {
                     Image(uiImage: generatedImage)
                         .resizable()
@@ -146,9 +151,11 @@ struct GenerationView: View {
                         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                         .padding(.horizontal)
                         .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                } else if isGeneratingImage {
-                    imageGeneratingPlaceholder
-                } else if let imageError {
+                } else {
+                    imageGenerationButton
+                }
+
+                if let imageError {
                     Text(imageError)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -170,70 +177,44 @@ struct GenerationView: View {
         }
     }
 
-    // MARK: - Image Generation Placeholder
+    // MARK: - Image Generation Button
 
-    private var imageGeneratingPlaceholder: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-                .controlSize(.large)
-            Text("Creating image...")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+    /// Button that presents the system Image Playground sheet, shown once the
+    /// text concept is ready and only where image generation is supported.
+    @ViewBuilder
+    private var imageGenerationButton: some View {
+        #if canImport(ImagePlayground)
+        if ImagePlaygroundViewController.isAvailable,
+           !viewModel.generationService.streamedText.isEmpty,
+           !viewModel.generationService.isGenerating {
+            Button {
+                showImagePlayground = true
+            } label: {
+                Label("Generate Image", systemImage: "wand.and.stars")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.horizontal)
+            .accessibilityLabel("Generate an image for this food concept")
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 200)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
-        )
-        .padding(.horizontal)
-        .accessibilityLabel("Generating image for food concept")
+        #endif
     }
-
-    // MARK: - Helpers
 
     // MARK: - Image Generation
 
-    @MainActor
-    private func generateImage() async {
-        #if canImport(ImagePlayground)
-        isGeneratingImage = true
-        imageError = nil
-        defer { isGeneratingImage = false }
-
-        do {
-            try Task.checkCancellation()
-            let creator = try await ImageCreator()
-
-            try Task.checkCancellation()
-
-            // Build concept from selected ingredients (available immediately)
-            let ingredientNames = viewModel.selectedIngredients.map(\.label)
-            let prompt = "A creative dish combining \(ingredientNames.joined(separator: ", "))"
-            let concepts: [ImagePlaygroundConcept] = [
-                .text(prompt)
-            ]
-
-            let images = creator.images(for: concepts, style: .animation, limit: 1)
-            for try await createdImage in images {
-                try Task.checkCancellation()
-                let uiImage = UIImage(cgImage: createdImage.cgImage)
-                withAnimation {
-                    generatedImage = uiImage
-                }
-                generatedImageData = uiImage.jpegData(compressionQuality: 0.8)
-                break
-            }
-        } catch is CancellationError {
-            // User dismissed the view — not an error
+    /// Loads the image the Image Playground sheet wrote to `url` and stores it
+    /// for display and for saving with the project.
+    private func loadGeneratedImage(from url: URL) {
+        guard let result = ImageImportService.loadImage(from: url) else {
+            imageError = "Couldn't load the generated image."
             return
-        } catch let imagePlaygroundError as ImageCreator.Error where imagePlaygroundError == .creationCancelled {
-            // Image generation cancelled — not an error
-            return
-        } catch {
-            imageError = error.localizedDescription
         }
-        #endif
+        imageError = nil
+        withAnimation {
+            generatedImage = result.image
+        }
+        generatedImageData = result.data
     }
 
     // MARK: - Subviews
@@ -241,14 +222,14 @@ struct GenerationView: View {
     private var generatingHeader: some View {
         HStack(spacing: 12) {
             ProgressView()
-            Text(isGeneratingImage ? "Creating image..." : "Mixing your creation...")
+            Text("Mixing your creation...")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .padding()
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
-        .accessibilityLabel(isGeneratingImage ? "Creating image" : "Generating food concept")
+        .accessibilityLabel("Generating food concept")
     }
 
     private var emptyState: some View {

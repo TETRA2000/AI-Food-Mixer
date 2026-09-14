@@ -136,7 +136,14 @@ final class AI_Food_MixerUITests: XCTestCase {
     func testSettingsShowsVersion() throws {
         selectTab("Settings")
         XCTAssertTrue(app.staticTexts["Version"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["1.0"].waitForExistence(timeout: 5))
+        // The version row reads CFBundleShortVersionString, so match any "major.minor[.patch]" string
+        // rather than a hardcoded value that goes stale on every release.
+        let versionValue = app.staticTexts.matching(
+            NSPredicate(format: "label MATCHES %@", #"^\d+\.\d+(\.\d+)?$"#)
+        ).firstMatch
+        XCTAssertTrue(versionValue.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Platform"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["iOS 27"].waitForExistence(timeout: 5))
     }
 
     // MARK: - Launch Performance

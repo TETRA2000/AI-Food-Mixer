@@ -19,13 +19,13 @@ struct SettingsView: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0")
+                        Text(AppInfo.version())
                             .foregroundStyle(.secondary)
                     }
                     HStack {
                         Text("Platform")
                         Spacer()
-                        Text("iOS 26")
+                        Text(AppInfo.platform)
                             .foregroundStyle(.secondary)
                     }
                 } header: {
