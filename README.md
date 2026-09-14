@@ -18,12 +18,11 @@ AI Food Mixer is an iOS app that transforms food creativity into a tap-driven mi
 
 - **Ingredient Selection** — Browse 120+ food emoji cards across 10 culinary categories. Tap to add ingredients to your Mixing Bowl.
 - **Food Concept Generation** — Combine selected ingredients via the on-device Foundation Model to produce a creative food concept with streaming Markdown output.
-- **Image Generation** — Automatically generates a visual representation of your food concept using Image Playground.
+- **Image Generation** — Once a concept is ready, tap **Generate Image** to create a visual for it in the on-device Image Playground sheet. The image is saved with the creation and can be shared.
 - **Project Management** — Save, view, and manage generated creations. Remix any saved project by loading its ingredients back into the Mix tab.
 - **Discover Gallery** — Browse 5 curated food mashup examples (Curry Lava Pizza Cake, Sushi Taco Fusion, and more) and remix them as starting points.
 - **Surprise Me** — Randomly select one ingredient per category for instant inspiration.
 - **Custom Ingredients & Categories** — Create your own ingredients and categories beyond the 120 built-in defaults.
-- **System Prompt Customisation** — Edit or create system prompts to control food concept generation style and structure.
 - **Share & Export** — Export food concepts as Markdown or plain text via the iOS Share Sheet.
 
 ## Requirements
@@ -49,7 +48,7 @@ AI Food Mixer/
 Key technical decisions:
 
 - **On-device AI** — All inference runs through the FoundationModels framework. No data leaves the device.
-- **Image Playground** — Food concept images are generated on-device using the ImagePlayground framework.
+- **Image Playground** — Food concept images are generated on-device via the system Image Playground sheet (`imagePlaygroundSheet`). The programmatic `ImageCreator` API was discontinued in iOS 27 and is not used.
 - **Value types for defaults** — Built-in ingredients and categories are static arrays, not SwiftData models, avoiding schema migration complexity.
 - **JSON blob storage** — Projects store ingredients as encoded JSON, making them fully self-contained and portable.
 - **@Observable** — All view models use the `@Observable` macro for cleaner SwiftUI integration.

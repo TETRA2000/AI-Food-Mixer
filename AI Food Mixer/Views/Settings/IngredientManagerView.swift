@@ -74,55 +74,27 @@ struct IngredientManagerView: View {
     }
 }
 
-// MARK: - Delete Category Confirmation (iOS 27 item binding)
+// MARK: - Delete Category Confirmation
 
 /// Confirms deletion of a custom category before removing it and its custom
-/// ingredients. The optional `category` is the single source of truth: it drives
-/// the iOS 27 `confirmationDialog(_:item:)` overload directly, and on earlier OS
-/// versions (deployment target is 26.4) the `isPresented:`/`presenting:` fallback
-/// derives its presentation flag from the same optional.
+/// ingredients. The optional `category` is the single source of truth and drives
+/// the iOS 27 `confirmationDialog(_:item:)` overload directly.
 struct DeleteCategoryConfirmation: ViewModifier {
     @Binding var category: CustomCategory?
     let onDelete: (CustomCategory) -> Void
 
     func body(content: Content) -> some View {
-        if #available(iOS 27.0, *) {
-            content.confirmationDialog(
-                "Delete Category",
-                item: $category,
-                titleVisibility: .visible
-            ) { category in
-                deleteButton(for: category)
-            } message: { category in
-                message(for: category)
+        content.confirmationDialog(
+            "Delete Category",
+            item: $category,
+            titleVisibility: .visible
+        ) { category in
+            Button("Delete \(category.displayName)", role: .destructive) {
+                onDelete(category)
             }
-        } else {
-            let isPresented = Binding(
-                get: { category != nil },
-                set: { if !$0 { category = nil } }
-            )
-            content.confirmationDialog(
-                "Delete Category",
-                isPresented: isPresented,
-                titleVisibility: .visible,
-                presenting: category
-            ) { category in
-                deleteButton(for: category)
-            } message: { category in
-                message(for: category)
-            }
+        } message: { category in
+            Text("Deleting \"\(category.displayName)\" also removes its custom ingredients. This can't be undone.")
         }
-    }
-
-    @ViewBuilder
-    private func deleteButton(for category: CustomCategory) -> some View {
-        Button("Delete \(category.displayName)", role: .destructive) {
-            onDelete(category)
-        }
-    }
-
-    private func message(for category: CustomCategory) -> Text {
-        Text("Deleting \"\(category.displayName)\" also removes its custom ingredients. This can't be undone.")
     }
 }
 

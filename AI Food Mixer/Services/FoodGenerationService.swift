@@ -166,10 +166,6 @@ final class FoodGenerationService {
 
     @MainActor
     private func generatePlaceholder(ingredients: [IngredientData]) async throws {
-        let ingredientList = ingredients
-            .map { "- \($0.emoji) **\($0.label)**" }
-            .joined(separator: "\n")
-
         let names = ingredients.map(\.label)
         let title = names.count > 1
             ? "\(names.first ?? "Mystery") \(names.last ?? "Mystery") Fusion"
@@ -211,7 +207,7 @@ final class FoodGenerationService {
         ---
 
         *Note: This is a placeholder concept generated in simulator mode. \
-        On a real device with iOS 26+, the Foundation Model will generate a fully creative food concept.*
+        On a real device with iOS 27+, the Foundation Model will generate a fully creative food concept.*
         """
 
         // Simulate streaming by revealing text in chunks

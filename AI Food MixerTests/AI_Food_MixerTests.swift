@@ -1729,4 +1729,30 @@ struct AI_Food_MixerTests {
         let result = ImageImportService.loadImage(from: url)
         #expect(result == nil)
     }
+
+    // MARK: - AppInfo
+
+    @Test func appInfoVersionReadsMarketingVersionFromBundle() {
+        let version = AppInfo.version(in: Bundle(for: BundleLocator.self))
+        // The test bundle carries its own CFBundleShortVersionString, so this must be a real version string.
+        #expect(version != "—")
+        #expect(version.range(of: #"^\d+\.\d+(\.\d+)?$"#, options: .regularExpression) != nil)
+    }
+
+    @Test func appInfoVersionFallsBackWhenBundleHasNoVersion() throws {
+        // A bundle rooted at an empty temp directory has no Info.plist, hence no version.
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("appinfo_\(UUID().uuidString).bundle")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let bundle = try #require(Bundle(url: dir))
+        #expect(AppInfo.version(in: bundle) == "—")
+    }
+
+    @Test func appInfoPlatformIsIOS27() {
+        #expect(AppInfo.platform == "iOS 27")
+    }
 }
+
+/// Anchor class used to locate the unit-test bundle via `Bundle(for:)`.
+private final class BundleLocator {}
